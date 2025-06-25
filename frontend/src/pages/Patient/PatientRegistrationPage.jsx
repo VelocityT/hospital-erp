@@ -18,7 +18,11 @@ import TextArea from "antd/es/input/TextArea";
 // import "./PatientRegistration.css";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
-import { createPatientApi, getPatientDetailsApi, updatePatientApi } from "../../services/apis";
+import {
+  createPatientApi,
+  getPatientDetailsApi,
+  updatePatientApi,
+} from "../../services/apis";
 import OPDForm from "../components/OPDForm";
 import IPDForm from "../components/IPDForm";
 import { generateUniqueNumber } from "../../utils/helper";
@@ -94,16 +98,18 @@ function PatientRegistrationPage() {
         try {
           const response = await getPatientDetailsApi(patientId);
           const patient = response.data;
-          console.log(patient)
+          console.log(patient);
           setEditPatientId(patient.patientId); // Save patientId for display
           // Set form fields with patient data
           form.setFieldsValue({
             // Basic fields
             fullName: patient.fullName,
             gender: patient.gender,
-            dob: patient.dob ? dayjs(patient.dob, "DD-MM-YYYY HH:mm") : undefined,
+            dob: patient.dob
+              ? dayjs(patient.dob, "DD-MM-YYYY HH:mm")
+              : undefined,
             bloodGroup: patient.bloodGroup,
-            patientType: patient.patientType,
+            patientType: patient?.ipdDetails?.ipdNumber ? "IPD" : "OPD",
             // Age
             age_year: patient.age?.years,
             age_month: patient.age?.months,
@@ -124,7 +130,7 @@ function PatientRegistrationPage() {
             admissionDateTime: patient.ipdDetails?.admissionDate
               ? dayjs(patient.ipdDetails.admissionDate, "DD-MM-YYYY HH:mm")
               : undefined,
-            bedType: patient.ipdDetails?.ward,
+            ward: patient.ipdDetails?.ward,
             bed: patient.ipdDetails?.bed,
             height: patient.ipdDetails?.height,
             weight: patient.ipdDetails?.weight,
@@ -164,7 +170,10 @@ function PatientRegistrationPage() {
 
     let years = today.diff(birthDate, "year");
     let months = today.diff(birthDate.add(years, "year"), "month");
-    let days = today.diff(birthDate.add(years, "year").add(months, "month"), "day");
+    let days = today.diff(
+      birthDate.add(years, "year").add(months, "month"),
+      "day"
+    );
 
     form.setFieldsValue({
       age_year: years,
@@ -246,6 +255,7 @@ function PatientRegistrationPage() {
 
   const onFinish = async (values) => {
     try {
+      // console.log(values)
       // Convert date objects to ISO strings or formatted strings
       const formatDate = (date) =>
         date && typeof date === "object" && date.format
@@ -278,10 +288,10 @@ function PatientRegistrationPage() {
         formData.append("IPD[height]", values.height);
         formData.append("IPD[weight]", values.weight);
         formData.append("IPD[bloodPressure]", values.bloodPressure);
-        formData.append("IPD[wardType]", values.bedType);
+        formData.append("IPD[ward]", values.bedType);
         formData.append("IPD[bed]", values.bed);
         formData.append("IPD[doctor]", values.doctor);
-        formData.append("IPD[notes]", values.ipdNotes);
+        formData.append("IPD[notes]", values.notes);
       }
 
       if (values.patientType === "OPD") {
@@ -292,7 +302,7 @@ function PatientRegistrationPage() {
         );
         formData.append("OPD[doctor]", values.opdDoctor);
         formData.append("OPD[consultationFees]", values.consultationFees);
-        formData.append("OPD[notes]", values.opdNotes);
+        formData.append("OPD[notes]", values.notes);
       }
 
       // Symptoms
@@ -321,12 +331,12 @@ function PatientRegistrationPage() {
       if (isEdit && patientId) {
         await updatePatientApi(patientId, formData);
         message.success("Patient updated successfully!");
-        navigate(-1)
+        navigate(-1);
         return;
       }
 
       await createPatientApi(formData);
-      console.log("hello")
+      // console.log("hello")
       // message.success("Registration successful!");
       // Reset the form after successful registration
       // form.resetFields();
@@ -347,7 +357,8 @@ function PatientRegistrationPage() {
           <>
             {isEdit && editPatientId && (
               <div style={{ fontWeight: 500, color: "#888", marginBottom: 4 }}>
-                Patient ID: <span style={{ color: "#222" }}>{editPatientId}</span>
+                Patient ID:{" "}
+                <span style={{ color: "#222" }}>{editPatientId}</span>
               </div>
             )}
             {isEdit ? "Update Patient" : "Patient Registration"}
@@ -417,7 +428,9 @@ function PatientRegistrationPage() {
                         onChange={handleDob}
                         inputReadOnly={false}
                         allowClear
-                        disabledDate={(current) => current && current > dayjs().endOf("day")}
+                        disabledDate={(current) =>
+                          current && current > dayjs().endOf("day")
+                        }
                       />
                     </Form.Item>
                   </Col>
@@ -521,11 +534,7 @@ function PatientRegistrationPage() {
             {/* IPD Details */}
             {patientType === "IPD" && (
               <Col span={24}>
-                <IPDForm
-                  form={form}
-                  bedTypes={bedTypes}
-                  beds={beds}
-                />
+                <IPDForm form={form} bedTypes={bedTypes} beds={beds} />
               </Col>
             )}
 

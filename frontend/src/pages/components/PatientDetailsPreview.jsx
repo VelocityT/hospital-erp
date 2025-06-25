@@ -1,9 +1,9 @@
 import { Drawer, Descriptions } from "antd";
 
-function PatientDetailsPreview({ open, onClose, patient, type }) {
+function PatientDetailsPreview({ open, onClose, patient }) {
   if (!patient) return null;
-console.log(patient)
-  const patientType = type || patient.patientType?.toLowerCase();
+  // console.log(patient)
+  // const patientType = type || patient.patientType?.toLowerCase();
 
   return (
     <Drawer title="Patient Details" open={open} onClose={onClose} width={500}>
@@ -15,11 +15,11 @@ console.log(patient)
           {patient.age?.years || 0}y {patient.age?.months || 0}m{" "}
           {patient.age?.days || 0}d
         </Descriptions.Item>
-        <Descriptions.Item label="Type">
+        {/* <Descriptions.Item label="Type">
           {patient.patientType?.toUpperCase() || (type && type.toUpperCase())}
-        </Descriptions.Item>
+        </Descriptions.Item> */}
         {/* Show status for IPD */}
-        {(patientType === "ipd" || patient.patientType === "IPD") && (
+        {patient?.ipdDetails && (
           <Descriptions.Item label="Status">
             {patient?.ipdDetails?.status || "-"}
           </Descriptions.Item>
@@ -48,7 +48,7 @@ console.log(patient)
         <Descriptions.Item label="Symptoms Description">
           {patient.symptoms?.description}
         </Descriptions.Item>
-        {(patientType === "ipd" || patient.patientType === "IPD") && (
+        {patient?.ipdDetails?.ipdNumber && (
           <>
             <Descriptions.Item label="IPD Number">
               {patient.ipdDetails?.ipdNumber}
@@ -65,7 +65,7 @@ console.log(patient)
             <Descriptions.Item label="Blood Pressure">
               {patient.ipdDetails?.bloodPressure}
             </Descriptions.Item>
-            <Descriptions.Item label="Ward Type">
+            <Descriptions.Item label="Ward">
               {patient.ipdDetails?.ward}
             </Descriptions.Item>
             <Descriptions.Item label="Bed">
@@ -79,7 +79,7 @@ console.log(patient)
             </Descriptions.Item>
           </>
         )}
-        {(patientType === "opd" || patient.patientType === "OPD") && (
+        {patient?.opdDetails?.opdNumber && (
           <>
             <Descriptions.Item label="OPD Number">
               {patient.opdDetails?.opdNumber}

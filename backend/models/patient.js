@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const patientSchema = new mongoose.Schema({
+  registrationDate: { type: Date, default: Date.now },
   patientId: {
     type: String,
     unique: true,
@@ -22,11 +23,11 @@ const patientSchema = new mongoose.Schema({
     type: String,
     enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"],
   },
-  patientType: {
-    type: String,
-    enum: ["OPD", "IPD"],
-    default: "OPD",
-  },
+  // patientType: {
+  //   type: String,
+  //   enum: ["OPD", "IPD"],
+  //   default: "OPD",
+  // },
   symptoms: {
     symptomNames: [String],
     symptomTitles: [String],

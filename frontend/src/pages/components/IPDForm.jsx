@@ -3,16 +3,14 @@ import { Card, Row, Col, Form, Input, Select, DatePicker } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
 import { getDoctorsApi } from "../../services/apis";
-import { generateUniqueNumber } from "../../utils/helper";
 
 const IPDForm = ({ form, bedTypes, beds }) => {
-  console.log(form.getFieldValue("ipdNumber"));
-  console.log(form.getFieldsValue(true));
   const [doctors, setDoctors] = useState([]);
 
   useEffect(() => {
     const fetchDoctors = async () => {
       const response = await getDoctorsApi();
+      console.log(response)
       if (Array.isArray(response?.data)) {
         setDoctors(
           response.data.map((d) => ({
@@ -34,22 +32,22 @@ const IPDForm = ({ form, bedTypes, beds }) => {
   //     form.setFieldsValue({ admissionDateTime: dayjs() });
   //   }
   // }, [form]);
-
+  console.log(form.getFieldValue("ipdNumber"));
   return (
     <Card title="IPD Details" bordered={false}>
       <Row gutter={16}>
         <Col xs={24} md={8}>
-          <Form.Item label="IPD Number" name="ipdNumber">
+          <Form.Item label="IPD Number" name="ipdNumber" >
             <Input
               size="large"
               readOnly
-              value={form?.getFieldValue("ipdNumber") || ""}
+              // value={form?.getFieldValue("ipdNumber") || "hello"}
             />
           </Form.Item>
         </Col>
         <Col xs={24} md={8}>
           <Form.Item
-            label="Admission Date & Time"
+            label="Admission Date"
             name="admissionDateTime"
             rules={[
               {
@@ -60,12 +58,11 @@ const IPDForm = ({ form, bedTypes, beds }) => {
             initialValue={dayjs()}
           >
             <DatePicker
-              showTime
               size="large"
               style={{ width: "100%" }}
-              format="YYYY-MM-DD HH:mm"
+              format="YYYY-MM-DD"
               disabled={true}
-              value={form.getFieldValue("admissionDateTime") || dayjs()}
+              // value={form.getFieldValue("admissionDateTime") || dayjs()}
             />
           </Form.Item>
         </Col>
@@ -89,10 +86,10 @@ const IPDForm = ({ form, bedTypes, beds }) => {
       </Row>
       <Row gutter={16}>
         <Col xs={24} md={8}>
-          <Form.Item label="Ward Type" name="bedType" required>
+          <Form.Item label="Ward" name="ward" required>
             <Select
               size="large"
-              placeholder="Select Ward Type"
+              placeholder="Select Ward"
               options={bedTypes}
               allowClear
             />
@@ -121,7 +118,7 @@ const IPDForm = ({ form, bedTypes, beds }) => {
       </Row>
       <Row gutter={16}>
         <Col xs={24}>
-          <Form.Item label="IPD Notes" name="ipdNotes">
+          <Form.Item label="IPD Notes" name="notes">
             <TextArea
               autoSize={{ minRows: 2 }}
               placeholder="Any notes or remarks for IPD admission"

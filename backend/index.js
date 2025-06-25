@@ -11,27 +11,20 @@ import doctorRoutes from "./routes/doctor.route.js";
 import opdRoutes from "./routes/opd.route.js";
 import ipdRoutes from "./routes/ipd.route.js";
 import authRoutes from "./routes/auth.route.js";
-
-
-
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 connectDB();
 
-const allowedOrigins = ['http://localhost:3000'];
+// const allowedOrigins = ["http://localhost:3000"];
 
 const app = express();
 app.use(express.json());
 app.use(bodyParser.json());
+app.use(cookieParser())
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: "http://localhost:3000",
     credentials: true,
   })
 );
@@ -46,9 +39,6 @@ app.use("/api/doctor", doctorRoutes);
 app.use("/api/opd", opdRoutes);
 app.use("/api/ipd", ipdRoutes);
 app.use("/api/auth", authRoutes);
-
-
-
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {

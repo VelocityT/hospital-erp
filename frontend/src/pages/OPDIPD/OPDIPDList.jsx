@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   Table,
   Card,
@@ -13,7 +13,13 @@ import {
   Form,
 } from "antd";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { getOpdPatientsApi, getIpdPatientsApi, getPatientDetailsApi, switchToIpdApi } from "../../services/apis";
+import {
+  getOpdPatientsApi,
+  getIpdPatientsApi,
+  getPatientDetailsApi,
+  switchToIpdApi,
+  getPatientDetailsIpdOpdApi,
+} from "../../services/apis";
 import dayjs from "dayjs";
 import PatientDetailsPreview from "../components/PatientDetailsPreview";
 import IPDForm from "../components/IPDForm";
@@ -74,7 +80,11 @@ function OPDIPDList({ type }) {
   }, [searchText, data]);
 
   const handleView = async (record) => {
-    const response = await getPatientDetailsApi(record?.patient?._id);
+    const response = await getPatientDetailsIpdOpdApi(record?._id, {
+      ipdNumber: record.ipdNumber,
+      opdNumber: record.opdNumber,
+    });
+    // console.log(response)
     setSelectedPatient(response.data);
     setViewDrawer(true);
   };
@@ -88,15 +98,20 @@ function OPDIPDList({ type }) {
     setIpdPatient(record);
     setIpdModalOpen(true);
     form.resetFields();
-    // Generate and set unique IPD number
     form.setFieldsValue({ ipdNumber: generateUniqueNumber("IPD") });
+    // form.setFieldValue({id:})
   };
 
   const handleIpdSwitch = async () => {
     try {
-      // const values = await ipdForm.validateFields();
-      // await switchToIpdApi(ipdPatient.patient?._id, values);
-      message.success(`Patient "${ipdPatient?.patient?.fullName}" switched to IPD successfully!`);
+      const { admissionDateTime, ...values } = form.getFieldsValue(true);
+      // console.log(selectedPatient)
+      // console.log(values)
+      const response = await switchToIpdApi(ipdPatient.patient?._id, values);
+      console.log(response);
+      message.success(
+        `Patient "${ipdPatient?.patient?.fullName}" switched to IPD successfully!`
+      );
       setIpdModalOpen(false);
       setIpdPatient(null);
     } catch (error) {
@@ -257,7 +272,10 @@ function OPDIPDList({ type }) {
           </Row>
         }
       >
-        <IPDForm form={form} bedTypes={bedTypes} beds={beds} />
+        {/* Wrap IPDForm in Form for context */}
+        <Form form={form} layout="vertical">
+          <IPDForm form={form} bedTypes={bedTypes} beds={beds} />
+        </Form>
       </Drawer>
     </Card>
   );

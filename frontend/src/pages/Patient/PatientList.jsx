@@ -19,13 +19,13 @@ import PatientDetailsPreview from "../components/PatientDetailsPreview";
 const { Option } = Select;
 
 const columnsBase = [
-  {
-    title: "Admit Date & Time",
-    key: "admitDate",
-    render: (_, record) => record.admitDate || "-",
-    sorter: (a, b) =>
-      new Date(a.admitDateRaw || 0) - new Date(b.admitDateRaw || 0),
-  },
+{
+  title: "Admit Date & Time",
+  key: "admitDate",
+  render: (_, record) => record.registrationDate || "-",
+  sorter: (a, b) =>
+    new Date(a.registrationDate) - new Date(b.registrationDate),
+},
   {
     title: "Patient ID",
     key: "patientId",
@@ -52,28 +52,6 @@ const columnsBase = [
       `${record.age?.years || "0"}y ${record.age?.months || "0"}m ${
         record.age?.days || "0"
       }d`,
-  },
-  {
-    title: "Type",
-    dataIndex: "patientType",
-    key: "patientType",
-    render: (type) =>
-      type ? (
-        <Tag color={type === "IPD" ? "red" : "blue"}>{type.toUpperCase()}</Tag>
-      ) : (
-        "-"
-      ),
-    filters: [
-      { text: "IPD", value: "IPD" },
-      { text: "OPD", value: "OPD" },
-    ],
-    onFilter: (value, record) => record.patientType === value,
-  },
-  {
-    title: "Status",
-    key: "status",
-    render: (_, record) =>
-      record.patientType === "IPD" ? record?.ipdDetails?.status || "-" : "-",
   },
   {
     title: "Phone",

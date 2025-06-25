@@ -66,7 +66,7 @@ const OPDForm = ({ form }) => {
               showTime
               size="large"
               style={{ width: "100%" }}
-              format="YYYY-MM-DD HH:mm"
+              format="YYYY-MM-DD"
               disabled={true}
               value={form.getFieldValue("visitDateTime") || dayjs()}
             />
@@ -107,7 +107,7 @@ const OPDForm = ({ form }) => {
         </Col>
       </Row>
       <Col xs={24}>
-        <Form.Item label="OPD Notes" name="opdNotes">
+        <Form.Item label="OPD Notes" name="notes">
           <TextArea
             autoSize={{ minRows: 2 }}
             placeholder="Any notes or remarks for OPD visit"

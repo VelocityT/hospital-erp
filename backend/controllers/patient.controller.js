@@ -12,12 +12,18 @@ const extractArray = (body, key) => {
 
 export const createPatient = async (req, res) => {
   try {
+    console.log(req.body.OPD);
+    // return res.status(201).json({
+    //   success: true,
+    //   message: "Patient created successfully",
+    //   // data: patient,
+    // });
     const patientData = {
       fullName: req.body.fullName,
       gender: req.body.gender,
       dob: req.body.dob,
       bloodGroup: req.body.bloodGroup,
-      patientType: req.body.patientType,
+      // patientType: req.body.patientType,
       age: {
         years: Number(req.body.age?.years || 0),
         months: Number(req.body.age?.months || 0),
@@ -52,30 +58,26 @@ export const createPatient = async (req, res) => {
       const OPDData = {
         patient: patient?._id,
         opdNumber: req.body.OPD?.opdNumber || "N/A",
-        visitDateTime: req.body.OPD?.visitDateTime || null,
+        // visitDateTime: req.body.OPD?.visitDateTime || null,
         doctor: req.body.OPD?.doctor || null,
-        notes: req.body.OPD?.notes || "",
+        notes: req.body.OPD?.opdNotes || "",
         consultationFees: Number(req.body.OPD?.consultationFees || 0),
       };
-
-      const opdResponse = await Opd.create(OPDData);
-      // console.log(opdResponse);
+      await Opd.create(OPDData);
     } else if (req.body.patientType === "IPD") {
       const IPDData = {
         patient: patient?._id,
-        ipdNumber: req.body.IPD?.ipdNumber || "N/A",
-        admissionDateTime: req.body.IPD?.admissionDateTime || null,
+        ipdNumber: req.body.IPD?.ipdNumber || "",
+        // admissionDateTime: req.body.IPD?.admissionDateTime || null,
         attendingDoctor: req.body.IPD?.doctor || null,
-        ward: req.body.IPD?.wardType || "",
+        ward: req.body.IPD?.ward || "",
         bed: req.body.IPD?.bed || "",
-        notes: req.body.IPD?.notes || "",
+        notes: req.body.IPD?.ipdNotes || "",
         height: Number(req.body.IPD?.height || 0),
         weight: Number(req.body.IPD?.weight || 0),
         bloodPressure: req.body.IPD?.bloodPressure || "",
       };
-
-      const ipdResponse = await Ipd.create(IPDData);
-      // console.log(ipdResponse);
+      await Ipd.create(IPDData);
     }
 
     return res.status(201).json({
@@ -97,48 +99,130 @@ export const getAllPatients = async (req, res) => {
   try {
     const patients = await Patient.find()
       .select(
-        "fullName gender dob age patientType contact.phone bloodGroup patientId"
+        "fullName gender age registrationDate contact.phone bloodGroup patientId"
       )
       .sort({ createdAt: -1 });
 
-    const enrichedPatients = await Promise.all(
-      patients.map(async (patient) => {
-        let admitDate = null;
-        let status = null;
-
-        if (patient.patientType === "OPD") {
-          const opd = await Opd.findOne({ patient: patient._id }).select(
-            "visitDateTime -_id"
-          );
-          admitDate = opd?.visitDateTime || null;
-        } else if (patient.patientType === "IPD") {
-          const ipd = await Ipd.findOne({ patient: patient._id }).select(
-            "admissionDate status -_id"
-          );
-          // console.log(ipd)
-          admitDate = ipd?.admissionDate || null;
-          status = ipd?.status || "-"
-        }
-
-        return {
-          ...patient.toObject(),
-          admitDate,
-          status
-        };
-      })
-    );
+    const formattedPatients = patients.map((patient) => ({
+      ...patient.toObject(),
+      dob: dayjs(patient.dob).format("DD MM YYYY"),
+      registrationDate: dayjs(patient.registrationDate).format(
+        "DD MM YYYY HH:mm"
+      ),
+    }));
 
     // console.log(patients)
     return res.status(200).json({
       success: true,
       message: "All patients fetched successfully",
-      data: enrichedPatients,
+      data: formattedPatients,
     });
   } catch (error) {
     console.error("Error fetching patients:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch patients",
+      error: error.message,
+    });
+  }
+};
+
+export const getPatientIpdOpdDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { ipdNumber, opdNumber } = req.query;
+
+    if (!ipdNumber && !opdNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Either ipdNumber or opdNumber must be provided",
+      });
+    }
+
+    let patient = null;
+    let details = null;
+    let detailsKey = null;
+
+    if (ipdNumber) {
+      const ipd = await Ipd.findOne({ ipdNumber, _id: id })
+        .populate("attendingDoctor", "fullName")
+        .populate(
+          "patient",
+          "fullName dob address symptoms gender age registrationDate contact.phone bloodGroup patientId"
+        );
+
+      if (!ipd) {
+        return res.status(404).json({
+          success: false,
+          message: "IPD record not found",
+        });
+      }
+
+      // Extract clean objects
+      const ipdObj = ipd.toObject();
+      const { patient: ipdPatient, ...restIpd } = ipdObj;
+
+      patient = {
+        ...ipdPatient,
+        registrationDate: dayjs(ipdPatient.registrationDate).format(
+          "DD-MM-YYYY HH:mm"
+        ),
+        dob: dayjs(ipdPatient.dob).format("DD-MM-YYYY"),
+      };
+
+      detailsKey = "ipdDetails";
+      details = {
+        ...restIpd,
+        admissionDate: dayjs(restIpd.admissionDate).format("DD-MM-YYYY HH:mm"),
+      };
+    }
+
+    if (opdNumber) {
+      const opd = await Opd.findOne({ opdNumber, _id: id })
+        .populate("doctor", "fullName")
+        .populate(
+          "patient",
+          "fullName dob address symptoms gender age registrationDate contact.phone bloodGroup patientId"
+        );
+
+      if (!opd) {
+        return res.status(404).json({
+          success: false,
+          message: "OPD record not found",
+        });
+      }
+
+      const opdObj = opd.toObject();
+      const { patient: opdPatient, ...restOpd } = opdObj;
+
+      patient = {
+        ...opdPatient,
+        registrationDate: dayjs(opdPatient.registrationDate).format(
+          "DD-MM-YYYY HH:mm"
+        ),
+        dob: dayjs(opdPatient.dob).format("DD-MM-YYYY"),
+      };
+
+      detailsKey = "opdDetails";
+      details = {
+        ...restOpd,
+        visitDateTime: dayjs(restOpd.visitDateTime).format("DD-MM-YYYY HH:mm"),
+      };
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Patient IPD/OPD details fetched successfully",
+      data: {
+        ...patient,
+        [detailsKey]: details,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching patient details:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch patient details",
       error: error.message,
     });
   }
@@ -204,7 +288,7 @@ export const getPatientDetails = async (req, res) => {
 export const editPatientRegistrationDetails = async (req, res) => {
   try {
     const id = req.params.id;
-    console.log(req.body)
+    console.log(req.body);
     // Prepare patient update data
     const patientData = {
       fullName: req.body.fullName,
@@ -294,6 +378,46 @@ export const editPatientRegistrationDetails = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update patient",
+      error: error.message,
+    });
+  }
+};
+
+export const switchPatientToIpd = async (req, res) => {
+  try {
+    const patientId = req.params.id;
+    const { doctor, ...ipdInfo } = req.body;
+
+    const existingIpd = await Ipd.findOne({
+      patient: patientId,
+      status: { $ne: "Discharged" },
+    });
+
+    if (existingIpd) {
+      return res.status(400).json({
+        success: false,
+        message: "Patient is already admitted in IPD.",
+      });
+    }
+
+    const ipdData = {
+      ...ipdInfo,
+      attendingDoctor: doctor,
+      patient: patientId,
+    };
+
+    const newIpd = await Ipd.create(ipdData);
+
+    return res.status(200).json({
+      success: true,
+      message: "Patient switched to IPD successfully",
+      data: newIpd,
+    });
+  } catch (error) {
+    console.error("Error switching patient to IPD:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to switch patient",
       error: error.message,
     });
   }

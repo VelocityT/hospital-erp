@@ -14,8 +14,8 @@ import {
   MedicineBoxOutlined,
 } from "@ant-design/icons";
 // import 'antd/dist/antd.css';
-import 'antd/dist/reset.css';
-import { Layout, Menu } from "antd";
+import "antd/dist/reset.css";
+import { Layout, Menu, Avatar, Dropdown, Modal, Button, message } from "antd";
 import OPDDashboard from "./pages/OPD/OPDdashboard";
 import PatientRegistration from "./pages/Patient/PatientRegistrationPage";
 import PatientList from "./pages/Patient/PatientList";
@@ -34,8 +34,12 @@ import { useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { removeUser } from "./redux/userSlice";
 import { useNavigate } from "react-router-dom";
+import StaffRegistrationForm from "./pages/staff/StaffRegistrationForm";
+import { logoutUserApi } from "./services/apis";
+import StaffList from "./pages/staff/StaffList";
+import SidebarMenu from "./pages/components/SidebarMenu";
 
-const { Header, Content, Sider } = Layout;
+const { Header, Content } = Layout;
 
 function ProtectedRoute({ children }) {
   const user = useSelector((state) => state.user);
@@ -50,6 +54,30 @@ function AppContent() {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.user);
+
+  // Modal state for profile
+  const [isProfileModalVisible, setProfileModalVisible] = useState(false);
+
+  // Dropdown menu actions
+  const handleMenuClick = async({ key }) => {
+    if (key === "profile") {
+      setProfileModalVisible(true);
+    } else if (key === "logout") {
+      const response = await logoutUserApi()
+      // console.log(response)
+      message.success(response.message)
+      dispatch(removeUser());
+      navigate("/login");
+    }
+  };
+
+  const userMenu = (
+    <Menu onClick={handleMenuClick}>
+      <Menu.Item key="profile">View Profile</Menu.Item>
+      <Menu.Item key="logout">Logout</Menu.Item>
+    </Menu>
+  );
 
   const isLoginPage = location.pathname === "/login";
 
@@ -59,52 +87,60 @@ function AppContent() {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      {/* Fixed, responsive Sidebar */}
-      <Sider
-        collapsible
-        collapsed={collapsed}
-        onCollapse={setCollapsed}
-        breakpoint="md"
-        collapsedWidth={80}
-        className="overflow-auto"
-        style={{
-          position: "fixed",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          zIndex: 1000,
-        }}
-      >
-        <div className="text-white p-4 font-bold text-center">Logo</div>
-        <Menu theme="dark" mode="inline" defaultSelectedKeys={["1"]}>
-          <Menu.Item key="registration" icon={<UserAddOutlined />}>
-            <Link to="/registration">Patient Registration</Link>
-          </Menu.Item>
-          <Menu.Item key="patient-list" icon={<TeamOutlined />}>
-            <Link to="/patients">Patient List</Link>
-          </Menu.Item>
-          <Menu.Item key="doctor-list" icon={<SolutionOutlined />}>
-            <Link to="/doctors">Doctor List</Link>
-          </Menu.Item>
-          <Menu.Item key="opd-list" icon={<MedicineBoxOutlined />}>
-            <Link to="/opd-list">OPD List</Link>
-          </Menu.Item>
-          <Menu.Item key="ipd-list" icon={<ProfileOutlined />}>
-            <Link to="/ipd-list">IPD List</Link>
-          </Menu.Item>
-        </Menu>
-      </Sider>
+      {/* Sidebar moved to SidebarMenu component */}
+      <SidebarMenu collapsed={collapsed} setCollapsed={setCollapsed} user={user} />
       <Layout
         style={{
           marginLeft: collapsed ? 80 : 200, // Dynamically shift content
           transition: "margin-left 0.2s",
         }}
       >
-        <Header style={{ background: "#fff", padding: 0 }} />
-        <Content
-          className="p-6 overflow-y-auto bg-gray-50"
-          // style={{ height: "100vh" }}
+        <Header className="bg-white px-4 flex justify-between items-center shadow-sm">
+          {/* Role on the left */}
+          {user?.role && (
+            <div className="text-sm font-semibold text-gray-600">
+              {user.role.toUpperCase()}
+            </div>
+          )}
+
+          {/* Avatar and Full Name with Dropdown */}
+          {user && (
+            <Dropdown overlay={userMenu} trigger={["click"]}>
+              <div className="cursor-pointer flex items-center space-x-2">
+                <Avatar icon={<UserOutlined />} />
+                <span className="font-medium hidden md:inline">
+                  {user.fullName}
+                </span>
+              </div>
+            </Dropdown>
+          )}
+        </Header>
+        {/* Profile Modal */}
+        <Modal
+          title="User Profile"
+          open={isProfileModalVisible}
+          onCancel={() => setProfileModalVisible(false)}
+          footer={[
+            <Button key="close" onClick={() => setProfileModalVisible(false)}>
+              Close
+            </Button>,
+          ]}
         >
+          {user && (
+            <div>
+              <p>
+                <b>Name:</b> {user.fullName}
+              </p>
+              <p>
+                <b>Role:</b> {user.role}
+              </p>
+              <p>
+                <b>Last Login:</b> {user.lastLogin}
+              </p>
+            </div>
+          )}
+        </Modal>
+        <Content className="p-6 overflow-y-auto bg-gray-50">
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route
@@ -128,6 +164,22 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <PatientRegistration />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/registration"
+              element={
+                <ProtectedRoute>
+                  <StaffRegistrationForm />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff"
+              element={
+                <ProtectedRoute>
+                  <StaffList />
                 </ProtectedRoute>
               }
             />
@@ -212,7 +264,7 @@ function AppContent() {
   );
 }
 
-function App() {
+export default function App() {
   return (
     <Provider store={store}>
       <Router>
@@ -221,5 +273,3 @@ function App() {
     </Provider>
   );
 }
-
-export default App;

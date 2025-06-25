@@ -10,7 +10,7 @@ export const secondOrderAccess = ["admin","doctor"]
 
 export const roleBasedAccess = (allowedRoles = []) => {
   return (req, res, next) => {
-    const authority = req.autority?.role;
+    const authority = req.authority?.role;
     if (!authority || !allowedRoles.includes(authority)) {
       return res.status(403).json({
         success: false,

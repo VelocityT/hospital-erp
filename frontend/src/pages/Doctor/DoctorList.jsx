@@ -83,10 +83,10 @@ const DoctorList = () => {
     setViewDrawer(true);
   };
 
-  const handleEdit = (record) => {
-    sessionStorage.setItem("editDoctor", JSON.stringify(record));
-    navigate("/doctor-registration?edit=1");
-  };
+  // const handleEdit = (record) => {
+  //   sessionStorage.setItem("editDoctor", JSON.stringify(record));
+  //   navigate("/doctor-registration?edit=1");
+  // };
 
   // Filter data by search text (name, email, phone)
   const filteredData = data.filter(
@@ -109,7 +109,7 @@ const DoctorList = () => {
               View
             </Button>
           </Col>
-          <Col>
+          {/* <Col>
             <Button
               size="small"
               type="primary"
@@ -117,7 +117,7 @@ const DoctorList = () => {
             >
               Edit
             </Button>
-          </Col>
+          </Col> */}
         </Row>
       ),
     },
@@ -125,14 +125,6 @@ const DoctorList = () => {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
-        <Button
-          type="primary"
-          onClick={() => navigate("/doctor-registration")}
-        >
-          New Doctor
-        </Button>
-      </div>
       <Card
         title={
           <Row gutter={[8, 8]} className="mb-2 md:mb-0">

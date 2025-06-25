@@ -1,38 +1,26 @@
 import User from "../models/user.js";
+import { hashPassword } from "../utils/helper.js";
 
-export const registerUser = async(req, res) => {
+export const registerUser = async (req, res) => {
   try {
+    // console.log(req.file)
+    const photo = req.file;
+    const userData = req.body;
 
+    // console.log(userData.password)
+    // const password = await hashPassword(req.body.password);
+    // console.log(password);
 
-    const userData = {
-      fullName: req.body.fullName,
-      gender: req.body.gender,
-      dob: new Date(req.body.dob),
-      bloodGroup: req.body.bloodGroup,
+    // return res.status(200).json({
+    //   success: true,
+    //   message: "User data received",
+    //   // data: newUser,
+    // });
 
-      // Professional
-      department: req.body.department,
-      designation: req.body.designation,
-      qualification: req.body.qualification,
-      specialist: req.body.specialist,
-      appointmentCharge: Number(req.body.appointmentCharge), // convert to Number
-
-      // Address
-      line1: req.body.line1,
-      line2: req.body.line2 || "",
-      city: req.body.city,
-      pincode: req.body.pincode,
-
-      // Contact
-      email: req.body.email,
-      phone: req.body.phone,
-
-      // Auth
-      password: req.body.password,
-      role: req.body.role || "receptionist",
-    };
-
-    const newUser  = await User.create(userData)
+    const newUser = await User.create({
+      ...userData,
+      password: await hashPassword(req.body.password),
+    });
 
     res.status(200).json({
       success: true,
@@ -48,12 +36,30 @@ export const registerUser = async(req, res) => {
   }
 };
 
-
 export const getUsers = async (req, res) => {
   try {
     console.log(req.query);
     const userType = req.query.userType;
     const response = await User.find({ role: userType }).select("-password");
+    // console.log(response)
+
+    return res.status(201).json({
+      success: true,
+      message: "Users fetched successfully",
+      data: response,
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch users",
+      error: error.message,
+    });
+  }
+};
+export const getAllStaff = async (req, res) => {
+  try {
+    const response = await User.find().select("fullName role staffId gender department");
     // console.log(response)
 
     return res.status(201).json({
