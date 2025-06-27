@@ -6,6 +6,7 @@ import {
   SolutionOutlined,
   ProfileOutlined,
   MedicineBoxOutlined,
+  RestOutlined,
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 
@@ -44,6 +45,11 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       icon: <TeamOutlined />,
       label: <Link to="/staff">Staff Management</Link>,
     },
+    {
+      key: "ward-management",
+      icon: <RestOutlined />,
+      label: <Link to="/wards">Ward and Beds</Link>,
+    },
   ];
 
   const doctorMenu = [
@@ -66,6 +72,11 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       key: "ipd-list",
       icon: <ProfileOutlined />,
       label: <Link to="/ipd-list">IPD List</Link>,
+    },
+    {
+      key: "ward-management",
+      icon: <RestOutlined />,
+      label: <Link to="/wards">Ward and Beds</Link>,
     },
   ];
 
@@ -90,6 +101,11 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       icon: <ProfileOutlined />,
       label: <Link to="/ipd-list">IPD List</Link>,
     },
+    {
+      key: "ward-management",
+      icon: <RestOutlined />,
+      label: <Link to="/wards">Ward and Beds</Link>,
+    },
   ];
 
   const pharmacistMenu = [
@@ -112,6 +128,11 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       key: "ipd-list",
       icon: <ProfileOutlined />,
       label: <Link to="/ipd-list">IPD List</Link>,
+    },
+    {
+      key: "ward-management",
+      icon: <RestOutlined />,
+      label: <Link to="/wards">Ward and Beds</Link>,
     },
   ];
 
@@ -140,6 +161,11 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       key: "ipd-list",
       icon: <ProfileOutlined />,
       label: <Link to="/ipd-list">IPD List</Link>,
+    },
+    {
+      key: "ward-management",
+      icon: <RestOutlined />,
+      label: <Link to="/wards">Ward and Beds</Link>,
     },
   ];
 

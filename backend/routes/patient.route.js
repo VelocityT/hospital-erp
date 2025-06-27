@@ -10,14 +10,14 @@ import {
 } from "../controllers/patient.controller.js";
 import upload from "../middlewares/multer.js";
 
-router.post("/", upload.array("medicalDocuments", 5), createPatient);
+router.post("/patient-resgistration", upload.array("medicalDocuments", 5), createPatient);
 
-router.get("/", getAllPatients);
+router.get("/all-patients", getAllPatients);
 
 router.get("/:id", getPatientDetails);
 router.get("/ipd-opd/:id",getPatientIpdOpdDetails)
 router.put(
-  "/:id",
+  "/registration/edit/:id",
   upload.array("medicalDocuments", 5),
   editPatientRegistrationDetails
 );
