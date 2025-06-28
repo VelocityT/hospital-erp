@@ -21,6 +21,13 @@ const commonRoutes = [
   { path: "/ipd-list", element: <OPDIPDList type="ipd" /> },
   { path: "wards/beds/:wardId", element: <BedsList /> },
   { path: "/wards", element: <WardManagment /> },
+  {
+    path: "/registration/edit/:patientId",
+    element: <PatientRegistration edit="patient" />,
+  },
+  { path: "/ipd/edit/:ipdId", element: <PatientRegistration edit="ipd" /> },
+  { path: "/opd/edit/:opdId", element: <PatientRegistration edit="opd" /> },
+  { path: "/addPrescription", element: <Prescription /> },
 ];
 
 export const roleRoutes = {

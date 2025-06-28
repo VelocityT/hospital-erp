@@ -16,6 +16,7 @@ import Print from "./pages/printMaterial/Print";
 import LoginPage from "./pages/authRoute/LoginPage";
 import { roleRoutes } from "./routes/roleBaseRoutes";
 import ProtectedRoute from "./pages/components/ProtectedRoutes";
+import { Toaster } from "react-hot-toast";
 
 const { Content } = Layout;
 
@@ -29,12 +30,11 @@ function AppContent() {
 
   const accessibleRoutes = roleRoutes[user?.role] || [];
 
-  if(!user?.role || !user?._id){
+  if (!user?.role || !user?._id) {
     return <Navigate to="/login" replace />;
   }
 
   return (
-
     <Layout style={{ minHeight: "100vh" }}>
       <SidebarMenu
         collapsed={collapsed}
@@ -69,6 +69,13 @@ export default function App() {
   return (
     <Provider store={store}>
       <Router>
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
+          toastOptions={{
+            duration: 6000,
+          }}
+        />
         <Routes>
           <Route path="/print" element={<Print />} />
           <Route path="/*" element={<AppContent />} />

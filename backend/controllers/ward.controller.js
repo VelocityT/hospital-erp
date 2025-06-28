@@ -1,4 +1,6 @@
+import mongoose from "mongoose";
 import Bed from "../models/bed.js";
+import Ipd from "../models/ipd.js";
 import Ward from "../models/ward.js";
 import WardTypeConfig from "../models/wardType.js";
 
@@ -273,6 +275,10 @@ export const getBedsByWardId = async (req, res) => {
       .populate({
         path: "ward",
         select: "name type floor",
+      })
+      .populate({
+        path: "patient",
+        select: "fullName patientId",
       });
 
     res.status(200).json({
@@ -331,17 +337,25 @@ export const deleteLastBed = async (req, res) => {
         .json({ success: false, message: "Ward ID is required." });
     }
 
-    const lastBed = await Bed.find({ ward: wardId })
-      .sort({ bedNumber: -1 }) // Assuming bedNumber is numeric string
-      .limit(1);
+    // Use aggregation to cast bedNumber to number and sort numerically
+    const [lastBed] = await Bed.aggregate([
+      { $match: { ward: new mongoose.Types.ObjectId(wardId) } },
+      {
+        $addFields: {
+          bedNumberNumeric: { $toInt: "$bedNumber" },
+        },
+      },
+      { $sort: { bedNumberNumeric: -1 } },
+      { $limit: 1 },
+    ]);
 
-    if (!lastBed.length) {
+    if (!lastBed) {
       return res
         .status(404)
         .json({ success: false, message: "No beds found in this ward." });
     }
 
-    const deleted = await Bed.findByIdAndDelete(lastBed[0]._id);
+    const deleted = await Bed.findByIdAndDelete(lastBed._id);
 
     res.status(200).json({
       success: true,
@@ -355,5 +369,102 @@ export const deleteLastBed = async (req, res) => {
       message: "Failed to delete last bed.",
       error: error.message,
     });
+  }
+};
+
+export const getAvailableWardsAndBeds = async (req, res) => {
+  try {
+    const { isEdit, ipdId } = req.query;
+
+    const wards = await Ward.find({ isActive: true }).sort({ name: 1 });
+
+    let patientBed = null;
+    if (isEdit && ipdId) {
+      const ipd = await Ipd.findById(ipdId)
+        .select("bed")
+        .populate("bed", "bedNumber charge ward");
+      patientBed = ipd?.bed || null;
+    }
+
+    const result = await Promise.all(
+      wards.map(async (ward) => {
+        let beds = await Bed.find({
+          ward: ward._id,
+          status: "Available",
+        })
+          .select("bedNumber charge status")
+          .sort({ bedNumber: 1 });
+
+        // Include patient’s bed if it's not available and belongs to this ward
+        if (
+          isEdit &&
+          patientBed &&
+          String(patientBed.ward) === String(ward._id) &&
+          !beds.some((b) => String(b._id) === String(patientBed._id))
+        ) {
+          beds = [patientBed, ...beds];
+        }
+
+        return {
+          _id: ward._id,
+          name: ward.name,
+          floor: ward.floor,
+          type: ward.type,
+          capacity: ward.capacity,
+          beds,
+        };
+      })
+    );
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      count: result.length,
+    });
+  } catch (err) {
+    console.error("Error fetching available wards and beds:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch wards and beds",
+      error: err.message,
+    });
+  }
+};
+export const changeBedStatus = async (req, res) => {
+  try {
+    const { bedId, status } = req.body;
+
+    if (!bedId || !status) {
+      return res
+        .status(400)
+        .json({ success: false, message: "bedId and status are required" });
+    }
+
+    if (!["Available", "Maintenance"].includes(status)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid status" });
+    }
+
+    const updatedBed = await Bed.findByIdAndUpdate(
+      bedId,
+      { status },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedBed) {
+      return res.status(404).json({ success: false, message: "Bed not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Bed status updated to ${status}`,
+      data: updatedBed,
+    });
+  } catch (error) {
+    console.error("Error updating bed status:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };

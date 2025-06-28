@@ -8,7 +8,8 @@ import {
   createBeds,
   getBedsByWardId,
   deleteWard,
-  deleteLastBed
+  deleteLastBed,
+  changeBedStatus
 } from "../controllers/ward.controller.js";
 import { authenticateToken } from "../middlewares/auth.middleware.js";
 import { roleBasedAccess } from "../middlewares/roleBaseAccess.middleare.js";
@@ -28,6 +29,7 @@ router.post("/create", createWard);
 router.put("/update/:id", updateWard);
 
 router.post("/create-beds",createBeds)
+router.put("/bed/status", changeBedStatus);
 router.delete("/delete/:id", deleteWard);
 router.delete("/delete-last-bed/:wardId", deleteLastBed);
 

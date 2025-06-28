@@ -4,13 +4,13 @@ import {
   createPatient,
   getAllPatients,
   getPatientDetails,
-  editPatientRegistrationDetails,
+  updatePatientRegistration,
   switchPatientToIpd,
   getPatientIpdOpdDetails
 } from "../controllers/patient.controller.js";
 import upload from "../middlewares/multer.js";
 
-router.post("/patient-resgistration", upload.array("medicalDocuments", 5), createPatient);
+router.post("/patient-registration", upload.array("medicalDocuments", 5), createPatient);
 
 router.get("/all-patients", getAllPatients);
 
@@ -19,7 +19,7 @@ router.get("/ipd-opd/:id",getPatientIpdOpdDetails)
 router.put(
   "/registration/edit/:id",
   upload.array("medicalDocuments", 5),
-  editPatientRegistrationDetails
+  updatePatientRegistration
 );
 router.post("/:id/switch-to-ipd", switchPatientToIpd);
 

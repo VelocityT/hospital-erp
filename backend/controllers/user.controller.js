@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import User from "../models/user.js";
 import { hashPassword } from "../utils/helper.js";
 
@@ -40,13 +41,22 @@ export const getUsers = async (req, res) => {
   try {
     console.log(req.query);
     const userType = req.query.userType;
-    const response = await User.find({ role: userType }).select("-password");
+    const users = await User.find({ role: userType })
+      .select("-password")
+      .lean();
+    const enrichedUsers = users.map((user) => ({
+      ...user,
+      dob: dayjs(user.dob).format("DD-MM-YYYY"),
+      dateOfJoining: dayjs(user.dateOfJoining).format("DD-MM-YYYY"),
+      lastLogin:dayjs(user.lastLogin).format("DD-MM-YYYY HH:mm"),
+    }));
+
     // console.log(response)
 
     return res.status(201).json({
       success: true,
       message: "Users fetched successfully",
-      data: response,
+      data: enrichedUsers,
     });
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -59,7 +69,9 @@ export const getUsers = async (req, res) => {
 };
 export const getAllStaff = async (req, res) => {
   try {
-    const response = await User.find().select("fullName role staffId gender department");
+    const response = await User.find().select(
+      "fullName role staffId gender department"
+    );
     // console.log(response)
 
     return res.status(201).json({

@@ -25,6 +25,7 @@ import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import AddWard from "../components/wardComponents/AddWard";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import toast from "react-hot-toast";
 
 const WardManagment = () => {
   const [wardTypes, setWardTypes] = useState([]);
@@ -107,11 +108,11 @@ const WardManagment = () => {
       const response = await createWardTypesApi({ wardTypesArr });
       setWardTypes(response.data);
       // console.log(response)
-      message.success("Ward types saved successfully!");
+      toast.success("Ward types saved successfully!");
       setModalOpen(false);
       setFields([{ value: "" }]);
     } catch (err) {
-      message.error("Failed to save ward types.");
+      toast.error("Failed to save ward types.");
     } finally {
       setLoading(false);
     }
@@ -120,7 +121,7 @@ const WardManagment = () => {
   const handleModalOk = async () => {
     const values = fields.map((f) => f.value.trim()).filter(Boolean);
     if (values.length === 0) {
-      message.error("Please add at least one ward type.");
+      toast.error("Please add at least one ward type.");
       setLoading(false);
       return;
     }
@@ -163,9 +164,9 @@ const WardManagment = () => {
               w._id === editingWard._id ? { ...w, ...response.ward } : w
             )
           );
-          message.success("Ward updated successfully!");
+          toast.success("Ward updated successfully!");
         } else {
-          message.error(response.message || "Failed to update ward.");
+          toast.error(response.message || "Failed to update ward.");
         }
       } else {
         // Add mode: send only data
@@ -177,14 +178,14 @@ const WardManagment = () => {
               .localeCompare((b.name || "").toLowerCase())
           )
         );
-        message.success("Ward added successfully!");
+        toast.success("Ward added successfully!");
       }
       setAddWardModalOpen(false);
       addWardForm.resetFields();
       setEditMode(false);
       setEditingWard(null);
     } catch (err) {
-      message.error(editMode ? "Failed to update ward." : "Failed to add ward.");
+      toast.error(editMode ? "Failed to update ward." : "Failed to add ward.");
     }
   };
 
@@ -199,13 +200,13 @@ const WardManagment = () => {
     try {
       const res = await deleteWardApi(wardToDelete._id);
       if (res.success) {
-        message.success("Ward deleted successfully!");
+        toast.success("Ward deleted successfully!");
         setWards((prev) => prev.filter((w) => w._id !== wardToDelete._id));
       } else {
-        message.error(res.message || "Failed to delete ward.");
+        toast.error(res.message || "Failed to delete ward.");
       }
     } catch (err) {
-      message.error("Failed to delete ward.");
+      toast.error("Failed to delete ward.");
     } finally {
       setDeleteModalOpen(false);
       setWardToDelete(null);

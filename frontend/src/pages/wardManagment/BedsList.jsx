@@ -22,6 +22,7 @@ import AddBeds from "../components/wardComponents/AddBeds";
 import BedInfo from "../components/wardComponents/BedInfo";
 import { useSelector } from "react-redux";
 import { FaBed } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 const BedsList = () => {
   const { wardId } = useParams();
@@ -66,13 +67,13 @@ const BedsList = () => {
     try {
       const res = await deleteLastBedApi(wardId);
       if (res.success) {
-        message.success(res.message || "Last bed deleted.");
+        toast.success(res.message || "Last bed deleted.");
         setBeds((prev) => prev.filter((b) => b._id !== res.data._id));
       } else {
-        message.error(res.message || "Failed to delete.");
+        toast.error(res.message || "Failed to delete.");
       }
     } catch (err) {
-      message.error("Error deleting bed.");
+      toast.error("Error deleting bed.");
     } finally {
       setDeleteLastBedModalOpen(false);
     }
@@ -162,7 +163,7 @@ const BedsList = () => {
         footer={null}
         destroyOnHidden
       >
-        <BedInfo bed={selectedBed} onDeleteSuccess={handleBedDeleteSuccess} />
+        <BedInfo bed={selectedBed} setBeds={setBeds} onDeleteSuccess={handleBedDeleteSuccess} />
       </Modal>
 
       {beds.length === 0 ? (

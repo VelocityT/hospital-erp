@@ -79,7 +79,8 @@ export const getIpdPatientsApi = async () => {
   }
 };
 
-export const getPatientDetailsApi = async (id, payload) => {
+export const getPatientDetailsApi = async (id) => {
+  //getPatients details or its ipd or opd details
   try {
     const response = await API.get(`/patients/${id}`);
     return response.data;
@@ -97,7 +98,7 @@ export const getPatientDetailsIpdOpdApi = async (id, params) => {
     return error.response?.data || error.message;
   }
 };
-export const updatePatientApi = async (id, payload) => {
+export const updatePatientRegistrationApi = async (id, payload) => {
   try {
     const response = await API.put(`/patients/registration/edit/${id}`, payload, {
       headers: {
@@ -109,6 +110,31 @@ export const updatePatientApi = async (id, payload) => {
     return error.response?.data || error.message;
   }
 };
+export const updateIpdDetailsApi = async (ipdId, payload) => {
+  try {
+    const response = await API.put(`/ipd/update/${ipdId}`, payload, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    return error.response?.data || { success: false, message: error.message };
+  }
+};
+export const updateOpdDetailsApi = async (opdId, payload) => {
+  try {
+    const response = await API.put(`/opd/update/${opdId}`, payload, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    return error.response?.data || { success: false, message: error.message };
+  }
+};
+
 export const switchToIpdApi = async (patientId, payload) => {
   try {
     const response = await API.post(
@@ -203,6 +229,24 @@ export const deleteLastBedApi = async (wardId) => {
   try {
     const res = await API.delete(`/ward/delete-last-bed/${wardId}`);
     return res.data;
+  } catch (error) {
+    return error.response?.data || { success: false, message: error.message };
+  }
+};
+export const getAvailableWardsAndBedsApi = async (payload) => {
+  try {
+    const response = await API.get("/ipd/available-wards-beds", {
+      params: payload,
+    });
+    return response.data;
+  } catch (error) {
+    return error.response?.data || { success: false, message: error.message };
+  }
+};
+export const changeBedStatusApi = async (payload) => {
+  try {
+    const response = await API.put("/ward/bed/status",payload);
+    return response.data;
   } catch (error) {
     return error.response?.data || { success: false, message: error.message };
   }

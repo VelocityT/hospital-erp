@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Input, Button, message, InputNumber } from "antd";
+import { Input, Button, InputNumber } from "antd";
+import { toast } from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { createBedsApi } from "../../../services/apis";
 
@@ -20,7 +21,7 @@ const AddBeds = ({ ward, setAddBedsModalOpen, setBeds }) => {
 
   const handleSubmit = async () => {
     if (!bedCount || bedCount < 1 || !wardId) {
-      message.warning("Please select a valid bed count.");
+      toast.warning("Please select a valid bed count.");
       return;
     }
     if (
@@ -29,7 +30,7 @@ const AddBeds = ({ ward, setAddBedsModalOpen, setBeds }) => {
       charge === "" ||
       isNaN(charge)
     ) {
-      message.warning("Please enter a valid charge.");
+      toast.warning("Please enter a valid charge.");
       return;
     }
 
@@ -40,21 +41,20 @@ const AddBeds = ({ ward, setAddBedsModalOpen, setBeds }) => {
     };
     try {
       setLoading(true);
-      message.success("success");
       const res = await createBedsApi(payload);
       console.log(res);
       if (res.success) {
-        message.success("Beds created successfully");
+        toast.success("Beds created successfully");
         setBeds((prevBeds) => [...prevBeds, ...res.data]);
         setBedCount(1);
         setCharge();
         if (setAddBedsModalOpen) setAddBedsModalOpen(false);
       } else {
-        message.error(res.message || "Failed to create beds");
+        toast.error(res.message || "Failed to create beds");
         console.log(res.message || "Failed to create beds");
       }
     } catch (err) {
-      message.error("Something went wrong");
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -93,7 +93,7 @@ const AddBeds = ({ ward, setAddBedsModalOpen, setBeds }) => {
           value={charge}
           onChange={setCharge}
           className="w-full"
-          placeholder="Enter bed charge"
+          placeholder="Enter charge per bed"
         />
       </div>
 

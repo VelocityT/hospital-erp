@@ -1,6 +1,7 @@
 import express from 'express';
+import { getDoctorsForPatientResgistration } from '../controllers/doctor.controller.js';
+
 const router = express.Router();
-import { getDoctorsForPatientResgistration} from '../controllers/doctor.controller.js';
 
 router.get("/",getDoctorsForPatientResgistration)
 

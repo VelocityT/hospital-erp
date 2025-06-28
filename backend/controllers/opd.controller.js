@@ -1,4 +1,5 @@
 import Opd from "../models/opd.js";
+import { extractArray } from "../utils/helper.js";
 
 export const getAllOpdPatients = async (req, res) => {
   try {
@@ -35,6 +36,48 @@ export const getAllOpdPatients = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch OPD patients",
+      error: error.message,
+    });
+  }
+};
+
+export const updateOpdDetails = async (req, res) => {
+  try {
+    const { opdId } = req.params;
+    // console.log(req.body);
+
+    const updateData = {
+      doctor: req.body.OPD?.doctor || null,
+      notes: req.body.OPD?.opdNotes || "",
+      symptoms: {
+        symptomNames: extractArray(req.body.symptoms, "symptomNames"),
+        symptomTitles: extractArray(req.body.symptoms, "symptomTitles"),
+        description: req.body.symptoms?.description || "",
+      },
+    };
+
+    const updatedOpd = await Opd.findByIdAndUpdate(opdId, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedOpd) {
+      return res.status(404).json({
+        success: false,
+        message: "OPD record not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "OPD details updated successfully",
+      data: updatedOpd,
+    });
+  } catch (error) {
+    console.error("Error updating OPD details:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update OPD details",
       error: error.message,
     });
   }
