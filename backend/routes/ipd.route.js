@@ -8,9 +8,9 @@ import upload from "../middlewares/multer.js";
 const router = express.Router();
 router.use(authenticateToken);
 
-router.get("/", getAllIpdPatients);
+router.get("/all-ipd-patients", getAllIpdPatients);
 router.get("/available-wards-beds", getAvailableWardsAndBeds);
-router.put("/update/:ipdId",upload.none(),updateIpdDetails)
+router.put("/update-ipd/:ipdId",upload.none(),updateIpdDetails)
 
 // router.use(roleBasedAccess(["admin"]));
 

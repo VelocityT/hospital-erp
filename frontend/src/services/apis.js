@@ -16,17 +16,17 @@ export const logoutUserApi = async () => {
     return error.response?.data || error.message;
   }
 };
-export const getAllStaffApi = async (payload) => {
+export const getAllStaffApi = async () => {
   try {
-    const response = await API.get("/users/staff", payload);
+    const response = await API.get("/user/all-staff");
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
   }
 };
-export const getAllPatientsApi = async (payload) => {
+export const getAllPatientsApi = async () => {
   try {
-    const response = await API.get("/patients/all-patients", payload);
+    const response = await API.get("/patient/all-patients");
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
@@ -34,7 +34,7 @@ export const getAllPatientsApi = async (payload) => {
 };
 export const createPatientApi = async (payload) => {
   try {
-    const response = await API.post("/patients/patient-registration", payload, {
+    const response = await API.post("/patient/patient-registration", payload, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -44,19 +44,19 @@ export const createPatientApi = async (payload) => {
     return error.response?.data || error.message;
   }
 };
-export const getUsersApi = async (payload) => {
+export const getUsersApi = async (params) => {
   try {
-    const response = await API.get("/users", {
-      params: payload,
+    const response = await API.get("/user/all-users", {
+      params,
     });
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
   }
 };
-export const getDoctorsApi = async (payload) => {
+export const getDoctorsApi = async () => {
   try {
-    const response = await API.get("/doctor", payload);
+    const response = await API.get("/doctor/all-doctors");
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
@@ -64,7 +64,7 @@ export const getDoctorsApi = async (payload) => {
 };
 export const getOpdPatientsApi = async () => {
   try {
-    const response = await API.get("/opd");
+    const response = await API.get("/opd/all-opd-patients");
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
@@ -72,7 +72,7 @@ export const getOpdPatientsApi = async () => {
 };
 export const getIpdPatientsApi = async () => {
   try {
-    const response = await API.get("/ipd");
+    const response = await API.get("/ipd/all-ipd-patients");
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
@@ -80,9 +80,8 @@ export const getIpdPatientsApi = async () => {
 };
 
 export const getPatientDetailsApi = async (id) => {
-  //getPatients details or its ipd or opd details
   try {
-    const response = await API.get(`/patients/${id}`);
+    const response = await API.get(`/patient/patient-details/${id}`);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
@@ -90,7 +89,7 @@ export const getPatientDetailsApi = async (id) => {
 };
 export const getPatientDetailsIpdOpdApi = async (id, params) => {
   try {
-    const response = await API.get(`/patients/ipd-opd/${id}`, {
+    const response = await API.get(`/patient/ipd-opd-details/${id}`, {
       params,
     });
     return response.data;
@@ -100,11 +99,15 @@ export const getPatientDetailsIpdOpdApi = async (id, params) => {
 };
 export const updatePatientRegistrationApi = async (id, payload) => {
   try {
-    const response = await API.put(`/patients/registration/edit/${id}`, payload, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    const response = await API.put(
+      `/patient/patient-registration/edit/${id}`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
@@ -112,7 +115,7 @@ export const updatePatientRegistrationApi = async (id, payload) => {
 };
 export const updateIpdDetailsApi = async (ipdId, payload) => {
   try {
-    const response = await API.put(`/ipd/update/${ipdId}`, payload, {
+    const response = await API.put(`/ipd/update-ipd/${ipdId}`, payload, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -124,7 +127,7 @@ export const updateIpdDetailsApi = async (ipdId, payload) => {
 };
 export const updateOpdDetailsApi = async (opdId, payload) => {
   try {
-    const response = await API.put(`/opd/update/${opdId}`, payload, {
+    const response = await API.put(`/opd/update-opd/${opdId}`, payload, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -138,7 +141,7 @@ export const updateOpdDetailsApi = async (opdId, payload) => {
 export const switchToIpdApi = async (patientId, payload) => {
   try {
     const response = await API.post(
-      `/patients/${patientId}/switch-to-ipd`,
+      `/patient/${patientId}/patient-switch-to-ipd`,
       payload
     );
     return response.data;
@@ -149,7 +152,7 @@ export const switchToIpdApi = async (patientId, payload) => {
 
 export const createUserApi = async (payload) => {
   try {
-    const response = await API.post("/users/register", payload, {
+    const response = await API.post("/user/user-registration", payload, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -175,9 +178,9 @@ export const createWardTypesApi = async (payload) => {
     return error.response?.data || error.message;
   }
 };
-export const createWardApi = async (wardData) => {
+export const createAndUpdateWardApi = async (wardData) => {
   try {
-    const response = await API.post("/ward/create", wardData);
+    const response = await API.post("/ward/create-update-ward", wardData);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
@@ -185,7 +188,7 @@ export const createWardApi = async (wardData) => {
 };
 // export const updateWardApi = async (wardId, updatedData) => {
 //   try {
-//     const response = await API.put(`/ward/update/${wardId}`, updatedData);
+//     const response = await API.put(`/ward/update-ward/${wardId}`, updatedData);
 //     return response.data;
 //   } catch (error) {
 //     return error.response?.data || error.message;
@@ -193,7 +196,7 @@ export const createWardApi = async (wardData) => {
 // };
 export const getAllWardsApi = async () => {
   try {
-    const response = await API.get("/ward/all");
+    const response = await API.get("/ward/all-wards");
     return response.data;
   } catch (error) {
     return error.response?.data || { success: false, message: error.message };
@@ -213,12 +216,14 @@ export const getBedsByWardIdApi = async (wardId) => {
     const response = await API.get(`/ward/beds/${wardId}`);
     return response.data;
   } catch (error) {
-    return error.response?.data || { success: false, message: "Request failed" };
+    return (
+      error.response?.data || { success: false, message: "Request failed" }
+    );
   }
 };
 export const deleteWardApi = async (wardId) => {
   try {
-    const res = await API.delete(`/ward/delete/${wardId}`);
+    const res = await API.delete(`/ward/delete-ward/${wardId}`);
     return res.data;
   } catch (error) {
     return error.response?.data || { success: false, message: error.message };
@@ -233,10 +238,10 @@ export const deleteLastBedApi = async (wardId) => {
     return error.response?.data || { success: false, message: error.message };
   }
 };
-export const getAvailableWardsAndBedsApi = async (payload) => {
+export const getAvailableWardsAndBedsApi = async (params) => {
   try {
     const response = await API.get("/ipd/available-wards-beds", {
-      params: payload,
+      params,
     });
     return response.data;
   } catch (error) {
@@ -245,7 +250,7 @@ export const getAvailableWardsAndBedsApi = async (payload) => {
 };
 export const changeBedStatusApi = async (payload) => {
   try {
-    const response = await API.put("/ward/bed/status",payload);
+    const response = await API.put("/ward/bed/status", payload);
     return response.data;
   } catch (error) {
     return error.response?.data || { success: false, message: error.message };

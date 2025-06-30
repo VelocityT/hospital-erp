@@ -3,7 +3,7 @@ import { getDoctorsForPatientResgistration } from '../controllers/doctor.control
 
 const router = express.Router();
 
-router.get("/",getDoctorsForPatientResgistration)
+router.get("/all-doctors",getDoctorsForPatientResgistration)
 
 
 export default router;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  createWardApi,
+  createAndUpdateWardApi,
   createWardTypesApi,
   getAllWardTypesApi,
   getAllWardsApi,
@@ -157,7 +157,7 @@ const WardManagment = () => {
       let response;
       if (editMode && editingWard) {
         // Update mode: send wardId with data
-        response = await createWardApi({ ...values, wardId: editingWard._id });
+        response = await createAndUpdateWardApi({ ...values, wardId: editingWard._id });
         if (response.success) {
           setWards((prev) =>
             prev.map((w) =>
@@ -170,7 +170,7 @@ const WardManagment = () => {
         }
       } else {
         // Add mode: send only data
-        response = await createWardApi(values);
+        response = await createAndUpdateWardApi(values);
         setWards((prev) =>
           [...prev, response.ward].sort((a, b) =>
             (a.name || "")

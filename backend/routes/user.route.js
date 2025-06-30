@@ -7,16 +7,16 @@ import { registerUser, getUsers,getAllStaff } from "../controllers/user.controll
 const router = express.Router();
 
 router.post(
-  "/register",
+  "/user-registration",
   authenticateToken,
   roleBasedAccess(["admin"]),
   upload.single("photo"),
   registerUser
 );
 
-router.get("/", getUsers);
+router.get("/all-users", getUsers);
 router.get(
-  "/staff",
+  "/all-staff",
   authenticateToken,
   roleBasedAccess(["admin"]),
   getAllStaff

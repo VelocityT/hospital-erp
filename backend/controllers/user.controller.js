@@ -39,7 +39,7 @@ export const registerUser = async (req, res) => {
 
 export const getUsers = async (req, res) => {
   try {
-    console.log(req.query);
+    // console.log(req.query);
     const userType = req.query.userType;
     const users = await User.find({ role: userType })
       .select("-password")

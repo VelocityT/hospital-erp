@@ -25,7 +25,7 @@ app.use(bodyParser.json());
 app.use(cookieParser())
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
   })
 );
@@ -38,8 +38,8 @@ app.get("/", (req, res) => {
 //   next();
 // });
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-app.use("/api/patients", patientRoutes);
-app.use("/api/users", userRoutes);
+app.use("/api/patient", patientRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/opd", opdRoutes);
 app.use("/api/ipd", ipdRoutes);

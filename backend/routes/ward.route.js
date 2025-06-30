@@ -2,7 +2,7 @@ import express from "express";
 import {
   createOrUpdateWardTypes,
   getAllWardTypes,
-  createWard,
+  createAndUpdateWard,
   updateWard,
   getAllWards,
   createBeds,
@@ -17,7 +17,7 @@ import { roleBasedAccess } from "../middlewares/roleBaseAccess.middleare.js";
 const router = express.Router();
 router.use(authenticateToken);
 
-router.get("/all", getAllWards);
+router.get("/all-wards", getAllWards);
 router.get("/beds/:wardId",getBedsByWardId)
 router.get("/wardTypes/all", getAllWardTypes);
 
@@ -25,12 +25,12 @@ router.get("/wardTypes/all", getAllWardTypes);
 //admin protected routes
 router.use(roleBasedAccess(["admin"]));
 router.post("/wardTypes/create", createOrUpdateWardTypes);
-router.post("/create", createWard);
-router.put("/update/:id", updateWard);
+router.post("/create-update-ward", createAndUpdateWard);
+router.put("/update-ward/:id", updateWard);
 
 router.post("/create-beds",createBeds)
 router.put("/bed/status", changeBedStatus);
-router.delete("/delete/:id", deleteWard);
+router.delete("/delete-ward/:id", deleteWard);
 router.delete("/delete-last-bed/:wardId", deleteLastBed);
 
 

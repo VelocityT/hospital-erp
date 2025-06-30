@@ -75,7 +75,7 @@ export const getAllWardTypes = async (req, res) => {
   }
 };
 
-export const createWard = async (req, res) => {
+export const createAndUpdateWard = async (req, res) => {
   try {
     const adminId = req.authority._id;
     const { wardId, type, ...rest } = req.body;
