@@ -21,18 +21,13 @@ const patientSchema = new mongoose.Schema({
   dob: Date,
   bloodGroup: {
     type: String,
-    enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"],
+    // enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"],
   },
   // patientType: {
   //   type: String,
   //   enum: ["OPD", "IPD"],
   //   default: "OPD",
   // },
-  symptoms: {
-    symptomNames: [String],
-    symptomTitles: [String],
-    description: String,
-  },
   address: {
     line1: { type: String, required: true },
     line2: { type: String },

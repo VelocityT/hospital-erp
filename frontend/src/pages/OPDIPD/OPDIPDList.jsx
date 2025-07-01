@@ -12,6 +12,12 @@ import {
   Drawer,
   Form,
 } from "antd";
+import {
+  EyeOutlined,
+  EditOutlined,
+  RetweetOutlined,
+  MedicineBoxOutlined,
+} from "@ant-design/icons";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   getOpdPatientsApi,
@@ -22,20 +28,10 @@ import {
 } from "../../services/apis";
 import dayjs from "dayjs";
 import PatientDetailsPreview from "../components/PatientDetailsPreview";
-import IPDForm from "../components/IPDForm";
+import IPDForm from "../components/formComponents/IPDForm";
 import { generateUniqueNumber } from "../../utils/helper";
-
-const bedTypes = [
-  { label: "General", value: "general" },
-  { label: "Semi-Private", value: "semi-private" },
-  { label: "Private", value: "private" },
-];
-
-const beds = [
-  { label: "Bed 101", value: "bed101" },
-  { label: "Bed 102", value: "bed102" },
-  { label: "Bed 201", value: "bed201" },
-];
+import { beds, bedTypes } from "../../utils/localStorage";
+import toast from "react-hot-toast";
 
 function OPDIPDList({ type }) {
   const [data, setData] = useState([]);
@@ -81,8 +77,8 @@ function OPDIPDList({ type }) {
 
   const handleView = async (record) => {
     const response = await getPatientDetailsIpdOpdApi(record?._id, {
-      ipdNumber: record.ipdNumber,
-      opdNumber: record.opdNumber,
+      isIpdPatient: record?.ipdNumber ? true : false,
+      isOpdPatient: record?.opdNumber ? true : false,
     });
     // console.log(response)
     setSelectedPatient(response.data);
@@ -91,7 +87,10 @@ function OPDIPDList({ type }) {
 
   const handleEdit = (record) => {
     sessionStorage.setItem("editPatient", JSON.stringify(record));
-    navigate(`/registration/edit/${record?.patient?._id}`);
+    console.log(record)
+    if (record.ipdNumber) return navigate(`/ipd/edit/${record?._id}`);
+    else if (record.opdNumber)
+      return navigate(`/opd/edit/${record?._id}`);
   };
 
   const handleSwitchType = (record) => {
@@ -109,14 +108,18 @@ function OPDIPDList({ type }) {
       // console.log(values)
       const response = await switchToIpdApi(ipdPatient.patient?._id, values);
       console.log(response);
-      message.success(
+      toast.success(
         `Patient "${ipdPatient?.patient?.fullName}" switched to IPD successfully!`
       );
       setIpdModalOpen(false);
       setIpdPatient(null);
     } catch (error) {
-      message.error(error?.message || "Failed to switch to IPD");
+      toast.error(error?.message || "Failed to switch to IPD");
     }
+  };
+
+  const handleAddPrescription = (record) => {
+    navigate("/addPrescription", { state: record });
   };
 
   const columns = [
@@ -143,7 +146,13 @@ function OPDIPDList({ type }) {
       key: "number",
       render: (_, record) => {
         const id = type === "ipd" ? record.ipdNumber : record.opdNumber;
-        return id ? <Link to={`/patient/${id}`}>{id}</Link> : "-";
+        return id ? (
+          <Link to={`/patient/${id}`} className="text-blue-600">
+            {id}
+          </Link>
+        ) : (
+          "-"
+        );
       },
     },
     {
@@ -186,30 +195,42 @@ function OPDIPDList({ type }) {
       render: (_, record) => (
         <Row gutter={[8, 8]}>
           <Col>
-            <Button size="small" onClick={() => handleView(record)}>
-              View
-            </Button>
+            <Button
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() => handleView(record)}
+              title="View"
+            />
           </Col>
           <Col>
             <Button
               size="small"
               type="primary"
+              icon={<EditOutlined />}
               onClick={() => handleEdit(record)}
-            >
-              Edit
-            </Button>
+              title="Edit"
+            />
           </Col>
           {type !== "ipd" && (
             <Col>
               <Button
                 size="small"
                 type="dashed"
+                icon={<RetweetOutlined />}
                 onClick={() => handleSwitchType(record)}
-              >
-                Switch to IPD
-              </Button>
+                title="Switch to IPD"
+              />
             </Col>
           )}
+          <Col>
+            <Button
+              size="small"
+              type="default"
+              icon={<MedicineBoxOutlined />}
+              onClick={() => handleAddPrescription(record)}
+              title="Add Prescription"
+            />
+          </Col>
         </Row>
       ),
     },

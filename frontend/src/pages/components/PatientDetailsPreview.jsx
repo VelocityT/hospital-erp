@@ -39,43 +39,60 @@ function PatientDetailsPreview({ open, onClose, patient }) {
         <Descriptions.Item label="City">
           {patient.address?.city}
         </Descriptions.Item>
-        <Descriptions.Item label="Symptoms">
-          {(patient.symptoms?.symptomNames || []).join(", ")}
-        </Descriptions.Item>
-        <Descriptions.Item label="Symptoms Titles">
-          {(patient.symptoms?.symptomTitles || []).join(", ")}
-        </Descriptions.Item>
-        <Descriptions.Item label="Symptoms Description">
-          {patient.symptoms?.description}
-        </Descriptions.Item>
         {patient?.ipdDetails?.ipdNumber && (
           <>
             <Descriptions.Item label="IPD Number">
-              {patient.ipdDetails?.ipdNumber}
+              {patient.ipdDetails.ipdNumber}
             </Descriptions.Item>
+
             <Descriptions.Item label="Admission Date & Time">
-              {patient.ipdDetails?.admissionDate}
+              {patient.ipdDetails.admissionDate}
             </Descriptions.Item>
+
             <Descriptions.Item label="Height">
-              {patient.ipdDetails?.height}
+              {patient.ipdDetails.height !== "NaN"
+                ? patient.ipdDetails.height
+                : "-"}
             </Descriptions.Item>
+
             <Descriptions.Item label="Weight">
-              {patient.ipdDetails?.weight}
+              {patient.ipdDetails.weight !== "NaN"
+                ? patient.ipdDetails.weight
+                : "-"}
             </Descriptions.Item>
+
             <Descriptions.Item label="Blood Pressure">
-              {patient.ipdDetails?.bloodPressure}
+              {patient.ipdDetails.bloodPressure !== "undefined"
+                ? patient.ipdDetails.bloodPressure
+                : "-"}
             </Descriptions.Item>
             <Descriptions.Item label="Ward">
-              {patient.ipdDetails?.ward}
+              {patient.ipdDetails.ward
+                ? `${patient.ipdDetails.ward.name} (Floor: ${patient.ipdDetails.ward.floor})`
+                : "-"}
             </Descriptions.Item>
-            <Descriptions.Item label="Bed">
-              {patient.ipdDetails?.bed}
+            <Descriptions.Item label="Bed Number">
+              {patient.ipdDetails.bed?.bedNumber || "-"}
             </Descriptions.Item>
             <Descriptions.Item label="Doctor">
-              {patient.ipdDetails?.attendingDoctor?.fullName}
+              {patient.ipdDetails.attendingDoctor?.fullName || "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Doctor Charge">
+              ₹{patient.ipdDetails.attendingDoctor?.ipdCharge || 0}
+            </Descriptions.Item>
+            <Descriptions.Item label="Symptoms">
+              {(patient.ipdDetails.symptoms?.symptomNames || []).join(", ") ||
+                "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Symptoms Titles">
+              {(patient.ipdDetails.symptoms?.symptomTitles || []).join(", ") ||
+                "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Symptoms Description">
+              {patient.ipdDetails.symptoms?.description || "-"}
             </Descriptions.Item>
             <Descriptions.Item label="IPD Notes">
-              {patient.ipdDetails?.notes}
+              {patient.ipdDetails.notes?.trim() || "-"}
             </Descriptions.Item>
           </>
         )}
@@ -92,6 +109,15 @@ function PatientDetailsPreview({ open, onClose, patient }) {
             </Descriptions.Item>
             <Descriptions.Item label="Consultation Fees">
               {patient.opdDetails?.consultationFees}
+            </Descriptions.Item>
+            <Descriptions.Item label="Symptoms">
+              {(patient?.opdDetails?.symptoms?.symptomNames || []).join(", ")}
+            </Descriptions.Item>
+            <Descriptions.Item label="Symptoms Titles">
+              {(patient?.opdDetails?.symptoms?.symptomTitles || []).join(", ")}
+            </Descriptions.Item>
+            <Descriptions.Item label="Symptoms Description">
+              {patient?.opdDetails?.symptoms?.description}
             </Descriptions.Item>
             <Descriptions.Item label="OPD Notes">
               {patient.opdDetails?.notes}

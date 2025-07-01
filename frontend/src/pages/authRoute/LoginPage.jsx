@@ -10,6 +10,7 @@ import {
   UserAddOutlined, // receptionist
   MedicineBoxOutlined, // pharmacist
 } from "@ant-design/icons";
+import { toast } from "react-hot-toast";
 import { loginUser } from "../../services/apis";
 
 const { Title } = Typography;
@@ -68,14 +69,14 @@ const LoginPage = () => {
       const res = await loginUser(payload);
       if (res && res.success) {
         dispatch(setUser(res.data));
-        message.success("Login successful!");
+        toast.success("Login successful!");
         navigate("/");
       } else {
-        message.error(res?.message || "Invalid credentials, please try again.");
+        toast.error(res?.message || "Invalid credentials, please try again.");
         if (!selectedRole) setRoleError("Please select your role!");
       }
     } catch (err) {
-      message.error("Login failed! Please try again.");
+      toast.error("Login failed! Please try again.");
       if (!selectedRole) setRoleError("Please select your role!");
     }
     setLoading(false);
@@ -184,7 +185,7 @@ const LoginPage = () => {
           </Form.Item>
           <Form.Item
             label="Email"
-            name="username"
+            name="email"
             rules={[
               { required: true, message: "Please input your email!" },
               { type: "email", message: "Please enter a valid email!" },

@@ -11,8 +11,14 @@ const ipdAdmissionSchema = new mongoose.Schema({
   notes: String,
   dischargeDate: Date,
   reason: String,
-  bed: String,
-  ward: String,
+  bed: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Bed",
+  },
+  ward: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Ward",
+  },
   height: String,
   weight: String,
   bloodPressure: String,
@@ -27,6 +33,11 @@ const ipdAdmissionSchema = new mongoose.Schema({
   },
   diagnosis: String,
   treatmentPlan: String,
+  symptoms: {
+    symptomNames: [String],
+    symptomTitles: [String],
+    description: String,
+  },
   status: {
     type: String,
     enum: ["Admitted", "Discharged"],

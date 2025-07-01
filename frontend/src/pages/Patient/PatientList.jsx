@@ -31,7 +31,7 @@ const columnsBase = [
     key: "patientId",
     render: (_, record) => {
       const id = record.patientId || "-";
-      return id ? <Link to={`/patient/${id}`}>{id}</Link> : "-";
+      return id ? <Link to={`/patient/${id}`} className="text-blue-600">{id}</Link> : "-";
     },
   },
   {
