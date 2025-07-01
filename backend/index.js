@@ -24,12 +24,22 @@ const swaggerDocs = JSON.parse(fs.readFileSync(new URL("./swagger_output.json", 
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(cookieParser())
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
-);
+const allowedOrigins = [
+  "http://localhost:3000",
+  "hospital-erp-frontend-iota.vercel.app" // 🔁 Replace this with your actual Vercel domain
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
 
 app.get("/", (req, res) => {
   res.send("API is running...");
