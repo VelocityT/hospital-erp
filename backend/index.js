@@ -17,8 +17,6 @@ import cookieParser from "cookie-parser";
 dotenv.config();
 connectDB();
 
-// const allowedOrigins = ["http://localhost:3000"];
-
 const app = express();
 const swaggerDocs = JSON.parse(fs.readFileSync(new URL("./swagger_output.json", import.meta.url)));
 app.use(express.json());
@@ -31,12 +29,11 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, Postman)
+    console.log("🔍 CORS origin:", origin);
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+      return callback(null, true);
     }
+    callback(new Error("Not allowed by CORS"));
   },
   credentials: true
 }));
