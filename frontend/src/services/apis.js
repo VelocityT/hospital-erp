@@ -256,3 +256,38 @@ export const changeBedStatusApi = async (payload) => {
     return error.response?.data || { success: false, message: error.message };
   }
 };
+
+export const createOrUpdateMedicineApi = async (payload) => {
+  try {
+    const response = await API.post(
+      `/pharmacy/create-update-medicine`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    return error.response?.data || error.message;
+  }
+};
+
+export const getAllMedicinesApi = async () => {
+  try {
+    const res = await API.get("/pharmacy/all-medicines");
+    return res.data;
+  } catch (error) {
+    return error.response?.data || { success: false, message: "API Error" };
+  }
+};
+
+export const deleteMedicineApi = async (id) => {
+  try {
+    const res = await API.delete(`/pharmacy/delete-medicine/${id}`);
+    return res.data;
+  } catch (error) {
+    return error.response?.data || { code: 500, message: "API Error" };
+  }
+};

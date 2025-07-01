@@ -50,6 +50,11 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       icon: <RestOutlined />,
       label: <Link to="/wards">Ward and Beds</Link>,
     },
+        {
+      key:"Pharmacy",
+      icon: <MedicineBoxOutlined />,
+      label: <Link to="/pharmacy">Pharmacy</Link>,
+    }
   ];
 
   const doctorMenu = [
@@ -167,14 +172,19 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       icon: <RestOutlined />,
       label: <Link to="/wards">Ward and Beds</Link>,
     },
+    {
+      key:"Pharmacy",
+      icon: <MedicineBoxOutlined />,
+      label: <Link to="/pharmacy">Pharmacy</Link>,
+    }
   ];
 
   let menuItems = [];
   if (user?.role === "admin") menuItems = adminMenu;
-  else if (user?.role === "doctor") menuItems = doctorMenu;
-  else if (user?.role === "nurse") menuItems = nurseMenu;
-  else if (user?.role === "pharmacist") menuItems = pharmacistMenu;
-  else if (user?.role === "receptionist") menuItems = receptionistMenu;
+  // else if (user?.role === "doctor") menuItems = doctorMenu;
+  // else if (user?.role === "nurse") menuItems = nurseMenu;
+  // else if (user?.role === "pharmacist") menuItems = pharmacistMenu;
+  // else if (user?.role === "receptionist") menuItems = receptionistMenu;
 
   return (
     <Sider

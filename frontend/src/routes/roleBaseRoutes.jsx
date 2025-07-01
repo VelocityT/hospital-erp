@@ -13,6 +13,8 @@ import AdmissionForm from "../pages/IPD/components/AdmissionForm";
 import BedAssignment from "../pages/IPD/components/BedAssignment";
 import WardManagment from "../pages/wardManagment/WardManagment";
 import BedsList from "../pages/wardManagment/BedsList";
+import AddMedicine from "../pages/pharmacy/AddMedicine";
+import MedicineList from "../pages/pharmacy/MedicineList";
 
 const commonRoutes = [
   { path: "/patients", element: <PatientList /> },
@@ -28,6 +30,9 @@ const commonRoutes = [
   { path: "/ipd/edit/:ipdId", element: <PatientRegistration edit="ipd" /> },
   { path: "/opd/edit/:opdId", element: <PatientRegistration edit="opd" /> },
   { path: "/addPrescription", element: <Prescription /> },
+  { path: "/pharmacy/medicine/add", element: <AddMedicine /> },
+  { path: "/pharmacy/medicine/edit/:id", element: <AddMedicine isEdit={true} /> },
+  { path: "/pharmacy", element: <MedicineList /> },
 ];
 
 export const roleRoutes = {

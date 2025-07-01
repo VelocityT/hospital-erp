@@ -12,7 +12,7 @@ import {
   Button,
 } from "antd";
 import {
-  medicineCategories,
+  medicineCategoriesDummy,
   doseIntervals,
   doseDurations,
   pathologyTests,
@@ -34,7 +34,7 @@ const Prescription = () => {
 
   // Get medicines for selected category
   const medicines =
-    medicineCategories.find((cat) => cat.category === selectedCategory)
+    medicineCategoriesDummy.find((cat) => cat.category === selectedCategory)
       ?.medicines || [];
 
   if (!patientRecord) return null;
@@ -164,7 +164,7 @@ const Prescription = () => {
                   allowClear
                   value={selectedCategory}
                 >
-                  {medicineCategories.map((cat) => (
+                  {medicineCategoriesDummy.map((cat) => (
                     <Select.Option key={cat.category} value={cat.category}>
                       {cat.category}
                     </Select.Option>

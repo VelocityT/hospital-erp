@@ -13,6 +13,7 @@ import opdRoutes from "./routes/opd.route.js";
 import ipdRoutes from "./routes/ipd.route.js";
 import authRoutes from "./routes/auth.route.js";
 import wardRoutes from "./routes/ward.route.js";
+import pharmacyRoutes from "./routes/pharmacy.route.js";
 
 dotenv.config();
 connectDB();
@@ -45,6 +46,7 @@ app.use("/api/opd", opdRoutes);
 app.use("/api/ipd", ipdRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/ward", wardRoutes);
+app.use("/api/pharmacy", pharmacyRoutes);
 
 
 const PORT = process.env.PORT || 8080;

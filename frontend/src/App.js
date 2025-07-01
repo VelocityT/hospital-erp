@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -6,7 +6,7 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import { Layout } from "antd";
+import { ConfigProvider, Layout,theme as antdTheme } from "antd";
 import { Provider, useSelector } from "react-redux";
 
 import { store } from "./redux/store";
@@ -48,7 +48,7 @@ function AppContent() {
         }}
       >
         <Navbar />
-        <Content className="p-6 overflow-y-auto bg-gray-50">
+        <Content className="p-6 overflow-y-auto">
           <Routes>
             {accessibleRoutes.map(({ path, element }) => (
               <Route
@@ -66,21 +66,44 @@ function AppContent() {
 }
 
 export default function App() {
+  const [theme, setTheme] = useState(
+    localStorage.getItem("theme") ||
+      (window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light")
+  );
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    localStorage.setItem("theme", theme);
+    window.theme = theme;
+  }, [theme]);
+
+  window.setTheme = setTheme;
+
   return (
     <Provider store={store}>
-      <Router>
-        <Toaster
-          position="top-center"
-          reverseOrder={false}
-          toastOptions={{
-            duration: 6000,
-          }}
-        />
-        <Routes>
-          <Route path="/print" element={<Print />} />
-          <Route path="/*" element={<AppContent />} />
-        </Routes>
-      </Router>
+      <ConfigProvider
+        theme={{
+          algorithm:
+            theme === "dark"
+              ? antdTheme.darkAlgorithm
+              : antdTheme.defaultAlgorithm,
+        }}
+      >
+        <Router>
+          <Toaster
+            position="top-center"
+            reverseOrder={false}
+            toastOptions={{ duration: 6000 }}
+          />
+          <Routes>
+            <Route path="/print" element={<Print />} />
+            <Route path="/*" element={<AppContent />} />
+          </Routes>
+        </Router>
+      </ConfigProvider>
     </Provider>
   );
 }
