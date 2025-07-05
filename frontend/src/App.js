@@ -38,6 +38,8 @@ import StaffRegistrationForm from "./pages/staff/StaffRegistrationForm";
 import { logoutUserApi } from "./services/apis";
 import StaffList from "./pages/staff/StaffList";
 import SidebarMenu from "./pages/components/SidebarMenu";
+import Prescription from "./pages/prescription/Prescription";
+import Print from "./pages/printMaterial/Print";
 
 const { Header, Content } = Layout;
 
@@ -60,13 +62,13 @@ function AppContent() {
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
 
   // Dropdown menu actions
-  const handleMenuClick = async({ key }) => {
+  const handleMenuClick = async ({ key }) => {
     if (key === "profile") {
       setProfileModalVisible(true);
     } else if (key === "logout") {
-      const response = await logoutUserApi()
+      const response = await logoutUserApi();
       // console.log(response)
-      message.success(response.message)
+      message.success(response.message);
       dispatch(removeUser());
       navigate("/login");
     }
@@ -88,7 +90,11 @@ function AppContent() {
   return (
     <Layout style={{ minHeight: "100vh" }}>
       {/* Sidebar moved to SidebarMenu component */}
-      <SidebarMenu collapsed={collapsed} setCollapsed={setCollapsed} user={user} />
+      <SidebarMenu
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        user={user}
+      />
       <Layout
         style={{
           marginLeft: collapsed ? 80 : 200, // Dynamically shift content
@@ -156,6 +162,14 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <PatientRegistration />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/addPrescription"
+              element={
+                <ProtectedRoute>
+                  <Prescription />
                 </ProtectedRoute>
               }
             />
@@ -268,7 +282,13 @@ export default function App() {
   return (
     <Provider store={store}>
       <Router>
-        <AppContent />
+        <Routes>
+          {/* This is OUTSIDE layout */}
+          <Route path="/print" element={<Print />} />
+
+          {/* All others go inside AppContent which includes sidebar, layout, etc */}
+          <Route path="/*" element={<AppContent />} />
+        </Routes>
       </Router>
     </Provider>
   );

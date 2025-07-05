@@ -12,6 +12,12 @@ import {
   Drawer,
   Form,
 } from "antd";
+import {
+  EyeOutlined,
+  EditOutlined,
+  RetweetOutlined,
+  MedicineBoxOutlined,
+} from "@ant-design/icons";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   getOpdPatientsApi,
@@ -24,18 +30,7 @@ import dayjs from "dayjs";
 import PatientDetailsPreview from "../components/PatientDetailsPreview";
 import IPDForm from "../components/IPDForm";
 import { generateUniqueNumber } from "../../utils/helper";
-
-const bedTypes = [
-  { label: "General", value: "general" },
-  { label: "Semi-Private", value: "semi-private" },
-  { label: "Private", value: "private" },
-];
-
-const beds = [
-  { label: "Bed 101", value: "bed101" },
-  { label: "Bed 102", value: "bed102" },
-  { label: "Bed 201", value: "bed201" },
-];
+import { beds, bedTypes } from "../../utils/localStorage";
 
 function OPDIPDList({ type }) {
   const [data, setData] = useState([]);
@@ -119,6 +114,10 @@ function OPDIPDList({ type }) {
     }
   };
 
+  const handleAddPrescription = (record) => {
+    navigate("/addPrescription", { state: record });
+  };
+
   const columns = [
     {
       title: type === "ipd" ? "Admission Date & Time" : "Visit Date & Time",
@@ -186,30 +185,42 @@ function OPDIPDList({ type }) {
       render: (_, record) => (
         <Row gutter={[8, 8]}>
           <Col>
-            <Button size="small" onClick={() => handleView(record)}>
-              View
-            </Button>
+            <Button
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() => handleView(record)}
+              title="View"
+            />
           </Col>
           <Col>
             <Button
               size="small"
               type="primary"
+              icon={<EditOutlined />}
               onClick={() => handleEdit(record)}
-            >
-              Edit
-            </Button>
+              title="Edit"
+            />
           </Col>
           {type !== "ipd" && (
             <Col>
               <Button
                 size="small"
                 type="dashed"
+                icon={<RetweetOutlined />}
                 onClick={() => handleSwitchType(record)}
-              >
-                Switch to IPD
-              </Button>
+                title="Switch to IPD"
+              />
             </Col>
           )}
+          <Col>
+            <Button
+              size="small"
+              type="default"
+              icon={<MedicineBoxOutlined />}
+              onClick={() => handleAddPrescription(record)}
+              title="Add Prescription"
+            />
+          </Col>
         </Row>
       ),
     },

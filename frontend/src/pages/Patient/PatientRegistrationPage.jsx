@@ -26,51 +26,16 @@ import {
 import OPDForm from "../components/OPDForm";
 import IPDForm from "../components/IPDForm";
 import { generateUniqueNumber } from "../../utils/helper";
+import { beds, bedTypes, symptomsData } from "../../utils/localStorage";
 
 const { Option } = Select;
 // const { TextArea } = Input;
-
-const bedTypes = [
-  { label: "General", value: "general" },
-  { label: "Semi-Private", value: "semi-private" },
-  { label: "Private", value: "private" },
-];
-
-const beds = [
-  { label: "Bed 101", value: "bed101" },
-  { label: "Bed 102", value: "bed102" },
-  { label: "Bed 201", value: "bed201" },
-];
 
 // const doctors = [
 //   { label: "Dr. Smith", value: "smith" },
 //   { label: "Dr. Ayesha", value: "ayesha" },
 //   { label: "Dr. Rahul", value: "rahul" },
 // ];
-
-const symptomsData = [
-  {
-    symptom: "Fever",
-    titles: [
-      { title: "Low", description: "Low grade fever below 100°F." },
-      { title: "High", description: "High fever above 102°F." },
-    ],
-  },
-  {
-    symptom: "Cough",
-    titles: [
-      { title: "Dry", description: "Dry cough without mucus." },
-      { title: "Wet", description: "Cough with mucus and congestion." },
-    ],
-  },
-  {
-    symptom: "Headache",
-    titles: [
-      { title: "Mild", description: "Mild pain." },
-      { title: "Severe", description: "Severe pulsing pain." },
-    ],
-  },
-];
 
 function PatientRegistrationPage() {
   const navigate = useNavigate();
