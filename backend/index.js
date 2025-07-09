@@ -28,7 +28,7 @@ app.use(cookieParser())
 
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://hospital-erp-frontend-iota.vercel.app" // 🔁 Replace this with your actual Vercel domain
+  // "https://hospital-erp-frontend-iota.vercel.app" // 🔁 Replace this with your actual Vercel domain
 ];
 
 app.use(cors({
