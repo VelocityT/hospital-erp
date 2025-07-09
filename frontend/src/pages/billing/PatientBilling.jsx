@@ -38,8 +38,8 @@ const PatientBilling = () => {
   const currentDate = dayjs().format("DD/MM/YYYY HH:mm");
 
   // For simulation
-  const TAX_PERCENT = 20;
-  const DISCOUNT_PERCENT = 10;
+  // const TAX_PERCENT = 20;
+  // const DISCOUNT_PERCENT = 10;
 
   useEffect(() => {
     const delayDebounce = setTimeout(async () => {
@@ -71,49 +71,6 @@ const PatientBilling = () => {
     }
     setFetchingDetails(false);
   };
-
-  const calculateIPDAmount = (ipd) => {
-    if (
-      !ipd.admissionDate ||
-      !ipd.bed?.charge ||
-      !ipd.attendingDoctor?.ipdCharge
-    )
-      return 0;
-    const days = Math.max(dayjs().diff(dayjs(ipd.admissionDate), "day"), 1);
-    return days * ipd.bed.charge + days * ipd.attendingDoctor.ipdCharge;
-  };
-
-  const calculateOPDAmount = (opd) => opd.doctor?.opdCharge || 0;
-
-  // const mergedCharges = [
-  //   ...(patient?.ipds || []),
-  //   ...(patient?.opds || []),
-  // ].map((entry) => {
-  //   const isIPD = !!entry.ipdNumber;
-  //   const id = entry._id;
-  //   const baseAmount = isIPD
-  //     ? calculateIPDAmount(entry)
-  //     : calculateOPDAmount(entry);
-  //   const discount = (baseAmount * DISCOUNT_PERCENT) / 100;
-  //   const tax = ((baseAmount - discount) * TAX_PERCENT) / 100;
-  //   const finalAmount = baseAmount - discount + tax;
-
-  //   return {
-  //     key: id,
-  //     checkId: entry?.ipdNumber || entry?.opdNumber,
-  //     date: dayjs(entry.admissionDate || entry.visitDateTime).format(
-  //       "DD/MM/YYYY hh:mm A"
-  //     ),
-  //     chargeNote: isIPD ? "IPD Charges" : "Consultation Fees",
-  //     type: isIPD ? "IPD" : "OPD",
-  //     category: isIPD ? entry.ward?.name || "Ward" : "OPD Consultation Fees",
-  //     qty: 1,
-  //     standard: baseAmount.toFixed(2),
-  //     discount: `${discount.toFixed(2)} (${DISCOUNT_PERCENT}%)`,
-  //     tax: tax.toFixed(2),
-  //     amount: finalAmount.toFixed(2),
-  //   };
-  // });
 
   const tabs = [
     {

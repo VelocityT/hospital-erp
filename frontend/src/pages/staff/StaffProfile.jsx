@@ -227,7 +227,7 @@ const StaffProfile = () => {
             </div>
           </Tabs.TabPane>
 
-          {staffData?.role == "doctor" && (
+          {staffData?.role === "doctor" && (
             <>
               <Tabs.TabPane tab="IPDs" key="2">
                 <Card size="small"> IPD records go here...</Card>

@@ -309,7 +309,9 @@ export const dischargePatientApi = async (payload) => {
 };
 export const getPatientFullDetailsApi = async (patientId) => {
   try {
-    const response = await API.get(`/patient/patient-full-details/${patientId}`);
+    const response = await API.get(
+      `/patient/patient-full-details/${patientId}`
+    );
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
@@ -327,31 +329,36 @@ export const searchPatientApi = async (query) => {
   try {
     const res = await API.get(`/patient/patient-search?q=${query}`);
     return res.data;
-  } catch (err) {
-    return { success: false, message: "Search failed" };
+  } catch (error) {
+    return error.response?.data || error.message;
   }
 };
 export const payPatientIpdBillApi = async (payload) => {
   try {
-    const res = await API.post("/pay/patient-ipd-bill",payload);
+    const res = await API.post("/pay/patient-ipd-bill", payload);
     return res.data;
-  } catch (err) {
-    return { success: false, message: "Search failed" };
+  } catch (error) {
+    return error.response?.data || error.message;
   }
 };
 export const payPatientOpdBillApi = async (payload) => {
   try {
-    const res = await API.post("/pay/patient-opd-bill",payload);
+    const res = await API.post("/pay/patient-opd-bill", payload);
     return res.data;
-  } catch (err) {
-    return { success: false, message: "Search failed" };
+  } catch (error) {
+    return error.response?.data || error.message;
   }
 };
 export const uploadMedicineExcelApi = async (formData) => {
-  return await API.post("/pharmacy/import-medicines", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-    withCredentials: true,
-  });
+  try {
+    const res = await API.post("/pharmacy/import-medicines", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (error) {
+    return error.response?.data || error.message;
+  }
 };

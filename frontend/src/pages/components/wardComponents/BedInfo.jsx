@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { Descriptions, Tag } from "antd";
 import { toast } from "react-hot-toast";
 import { changeBedStatusApi } from "../../../services/apis";
+import { useSelector } from "react-redux";
 
 const BedInfo = ({ bed, setBeds }) => {
+  const user = useSelector(state=>state?.user)
   const [loading, setLoading] = useState(false);
   const [bedStatus, setBedStatus] = useState(bed?.status || "Available");
 
@@ -52,7 +54,7 @@ const BedInfo = ({ bed, setBeds }) => {
 
       <Descriptions.Item label="Status">
         <div
-          onClick={handleStatusToggle}
+          onClick={()=>["admin"].includes(user?.role) && handleStatusToggle()}
           style={{
             cursor: bedStatus !== "Occupied" ? "pointer" : "not-allowed",
             display: "inline-block",

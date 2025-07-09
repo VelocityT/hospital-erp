@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Input, Button, InputNumber } from "antd";
 import { toast } from "react-hot-toast";
-import { useSelector } from "react-redux";
+// import { useSelector } from "react-redux";
 import { createBedsApi } from "../../../services/apis";
 
 const AddBeds = ({ ward, setAddBedsModalOpen, setBeds }) => {
@@ -9,7 +9,7 @@ const AddBeds = ({ ward, setAddBedsModalOpen, setBeds }) => {
   const [loading, setLoading] = useState(false);
   const [wardId, setWardId] = useState("");
   const [charge, setCharge] = useState();
-  const user = useSelector((state) => state.user);
+  // const user = useSelector((state) => state.user);
 
   useEffect(() => {
     if (ward && ward._id) {

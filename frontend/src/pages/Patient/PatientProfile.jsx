@@ -24,10 +24,12 @@ import toast from "react-hot-toast";
 import { getPatientFullDetailsApi } from "../../services/apis";
 import dayjs from "dayjs";
 import { handlePatientBillPrint } from "../../utils/printDataHelper";
+import {useSelector} from "react-redux"
 
 const { useBreakpoint } = Grid;
 
 const PatientProfile = () => {
+  const user = useSelector(state=>state?.user)
   const { patientId } = useParams();
   const [data, setData] = useState(null);
   const [bills, setBills] = useState([]);
@@ -112,7 +114,7 @@ const PatientProfile = () => {
         <Col>
           <Button onClick={() => navigate(-1)}>Back</Button>
         </Col>
-        <Col>
+        {["admin", "doctor","receptionist"].includes(user?.role) && (<><Col>
           <Button
             type="primary"
             onClick={() => {
@@ -149,7 +151,7 @@ const PatientProfile = () => {
           >
             New OPD
           </Button>
-        </Col>
+        </Col></>)}
       </Row>
 
       <Card style={{ marginBottom: 16 }}>

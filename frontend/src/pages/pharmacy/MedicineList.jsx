@@ -18,8 +18,10 @@ import {
   uploadMedicineExcelApi,
 } from "../../services/apis";
 import { toast } from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 const MedicineList = () => {
+  const user = useSelector(state=>state?.user)
   const [loading, setLoading] = useState(false);
   const [medicines, setMedicines] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -146,7 +148,7 @@ const MedicineList = () => {
         </Tag>
       ),
     },
-    {
+    (["admin", "pharmacist"].includes(user?.role) && {
       title: "Action",
       render: (_, record) => (
         <Space>
@@ -162,12 +164,12 @@ const MedicineList = () => {
           </Tooltip>
         </Space>
       ),
-    },
+    })
   ];
 
   return (
     <div className="max-w-7xl mx-auto px-2 sm:px-4">
-      <div className="flex flex-col sm:flex-row justify-end gap-2 mb-3">
+      {["admin", "pharmacist"].includes(user?.role)&&(<div className="flex flex-col sm:flex-row justify-end gap-2 mb-3">
         <Button
           type="primary"
           onClick={() => navigate("/pharmacy/medicine/add")}
@@ -183,7 +185,7 @@ const MedicineList = () => {
         >
           <Button icon={<UploadOutlined />}>Import Excel</Button>
         </Upload>
-      </div>
+      </div>)}
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 mb-4">
         <h2 className="text-lg sm:text-xl font-semibold">All Medicines</h2>

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getPatientDetailsIpdOpdApi } from "../../services/apis";
 import { toast } from "react-hot-toast";
-import { Spin, Button, Card, Row, Col, Descriptions, Divider } from "antd";
+import { Spin, Button, Card, Row, Descriptions, Divider } from "antd";
 import { BillDetailsList } from "../components/billing/ChargeTable";
 import dayjs from "dayjs"
 
@@ -46,8 +46,6 @@ const IpdOpdDetails = () => {
 
   const details =
     type === "ipd" ? entryDetails.ipdDetails : entryDetails.opdDetails;
-  const billData =
-    type === "ipd" ? details?.payment?.bill || [] : [details?.payment?.bill];
 
   // ==========for printing===========
   const { ipdDetails, opdDetails, ...patient } = entryDetails;

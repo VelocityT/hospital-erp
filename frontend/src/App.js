@@ -17,6 +17,7 @@ import LoginPage from "./pages/authRoute/LoginPage";
 import { roleRoutes } from "./routes/roleBaseRoutes";
 import ProtectedRoute from "./pages/components/ProtectedRoutes";
 import { Toaster } from "react-hot-toast";
+import NotFoundPage from "./pages/NotFoundPage";
 
 const { Content } = Layout;
 
@@ -56,7 +57,8 @@ function AppContent() {
                 element={<ProtectedRoute>{element}</ProtectedRoute>}
               />
             ))}
-            <Route path="/" element={<Navigate to="/registration" replace />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Content>
       </Layout>

@@ -6,15 +6,13 @@ import {
   Input,
   Row,
   Col,
-  Select,
   message,
 } from "antd";
 import dayjs from "dayjs";
 import { Link, useNavigate } from "react-router-dom";
 import { getAllPatientsApi, getPatientDetailsApi } from "../../services/apis";
 import PatientDetailsPreview from "../components/PatientDetailsPreview";
-
-const { Option } = Select;
+import { useSelector } from "react-redux";
 
 const columnsBase = [
   {
@@ -87,6 +85,7 @@ function PatientList() {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [searchText, setSearchText] = useState("");
   const navigate = useNavigate();
+  const user = useSelector(state=>state?.user)
 
   useEffect(() => {
     const getAllPatients = async () => {
@@ -143,7 +142,7 @@ function PatientList() {
               View
             </Button>
           </Col>
-          <Col>
+          {["admin", "doctor","receptionist"].includes(user?.role)&&(<Col>
             <Button
               size="small"
               type="primary"
@@ -151,7 +150,7 @@ function PatientList() {
             >
               Edit
             </Button>
-          </Col>
+          </Col>)}
         </Row>
       ),
     },

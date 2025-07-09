@@ -1,15 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Table,
-  Card,
-  Tag,
-  Button,
-  Input,
-  Row,
-  Col,
-  Drawer,
-  Form,
-} from "antd";
+import { Table, Card, Tag, Button, Input, Row, Col, Drawer, Form } from "antd";
 import {
   EyeOutlined,
   EditOutlined,
@@ -32,8 +22,10 @@ import { beds, bedTypes } from "../../utils/localStorage";
 import toast from "react-hot-toast";
 import DischargeModal from "../components/OPDIPD/IPDDischarge";
 import SymptomsForm from "../components/formComponents/SymptopmsForm";
+import { useSelector } from "react-redux";
 
 function OPDIPDList({ type }) {
+  const user = useSelector((state) => state?.user);
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [viewDrawer, setViewDrawer] = useState(false);
@@ -252,8 +244,11 @@ function OPDIPDList({ type }) {
               return isAdmitted ? (
                 <Tag
                   color="green"
-                  onClick={() => handleDischargeClick(record)}
-                  className="cursor-pointer hover:scale-110"
+                  onClick={() =>
+                    ["admin", "doctor", "receptionist"].includes(user?.role) &&
+                    handleDischargeClick(record)
+                  }
+                  className={["admin", "doctor","receptionist"].includes(user?.role) && "cursor-pointer hover:scale-110"}
                 >
                   {record.status}
                 </Tag>
@@ -280,37 +275,41 @@ function OPDIPDList({ type }) {
               title="View"
             />
           </Col>
-          {type !== "ipd" && (
-            <Col>
-              <Button
-                size="small"
-                type="dashed"
-                icon={<RetweetOutlined />}
-                onClick={() => handleSwitchType(record)}
-                title="Switch to IPD"
-              />
-            </Col>
-          )}
-          {record.status !== "Discharged" && (
+          {["admin", "doctor", "receptionist"].includes(user?.role) && (
             <>
-              <Col>
-                <Button
-                  size="small"
-                  type="primary"
-                  icon={<EditOutlined />}
-                  onClick={() => handleEdit(record)}
-                  title="Edit"
-                />
-              </Col>
-              <Col>
-                <Button
-                  size="small"
-                  type="default"
-                  icon={<MedicineBoxOutlined />}
-                  onClick={() => handleAddPrescription(record)}
-                  title="Add Prescription"
-                />
-              </Col>
+              {type !== "ipd" && (
+                <Col>
+                  <Button
+                    size="small"
+                    type="dashed"
+                    icon={<RetweetOutlined />}
+                    onClick={() => handleSwitchType(record)}
+                    title="Switch to IPD"
+                  />
+                </Col>
+              )}
+              {record.status !== "Discharged" && (
+                <>
+                  <Col>
+                    <Button
+                      size="small"
+                      type="primary"
+                      icon={<EditOutlined />}
+                      onClick={() => handleEdit(record)}
+                      title="Edit"
+                    />
+                  </Col>
+                  <Col>
+                    <Button
+                      size="small"
+                      type="default"
+                      icon={<MedicineBoxOutlined />}
+                      onClick={() => handleAddPrescription(record)}
+                      title="Add Prescription"
+                    />
+                  </Col>
+                </>
+              )}
             </>
           )}
         </Row>

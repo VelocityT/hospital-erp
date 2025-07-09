@@ -27,7 +27,6 @@ import OPDForm from "../components/formComponents/OPDForm";
 import IPDForm from "../components/formComponents/IPDForm";
 import SymptomsForm from "../components/formComponents/SymptopmsForm";
 import { generateUniqueNumber } from "../../utils/helper";
-import { beds, bedTypes } from "../../utils/localStorage";
 
 const { Option } = Select;
 

@@ -2,10 +2,6 @@ import { useEffect } from "react";
 import PrintHeader from "./PrintHeader";
 import PrintPrescription from "./PrintPrescription";
 import PrintPatientDescription from "./PrintPatientDescription";
-import {
-  IpdChargeTable,
-  OpdChargeTable,
-} from "../components/billing/ChargeTable";
 import PrintPatientBill from "./PrintPatientBill";
 
 const Print = () => {
@@ -37,7 +33,7 @@ const Print = () => {
     <div className="p-4 print:p-0 bg-white print:bg-white">
       <PrintHeader />
       {type ? (
-        <PrintPatientBill bill={billEntryData}/>
+        <PrintPatientBill bill={billEntryData} />
       ) : (
         <>
           <PrintPatientDescription />
