@@ -1,5 +1,3 @@
-import React from "react";
-
 const PrintPatientDescription = () => {
   const patientDescription = JSON.parse(
     localStorage.getItem("printPatientDescription") || "{}"
@@ -26,7 +24,9 @@ const PrintPatientDescription = () => {
     },
     { label: "Blood Group", value: patientDescription.bloodGroup || "-" },
     { label: "Phone", value: patientDescription.phone || "-" },
-    { label: "Doctor", value: patientDescription.doctorFullName || "-" },
+    ...(patientDescription?.doctorFullName
+      ? [{ label: "Doctor", value: patientDescription.doctorFullName || "-" }]
+      : []),
   ];
 
   return (

@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  profilePhoto:{type:String},
 
   role: {
     type: String,
@@ -27,7 +28,7 @@ const userSchema = new mongoose.Schema({
   gender: { type: String, enum: ["Male", "Female", "Other"] },
   dob: { type: Date },
   bloodGroup: { type: String },
-  phone: { type: String },
+  phone: { type: String ,required: true, unique: true},
   emergencyContact: { type: String },
   fatherName: { type: String },
   motherName: { type: String },

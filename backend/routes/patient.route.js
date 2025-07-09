@@ -6,7 +6,10 @@ import {
   getPatientDetails,
   updatePatientRegistration,
   switchPatientToIpd,
-  getPatientIpdOpdDetails
+  getPatientIpdOpdDetails,
+  getPatientFullDetails,
+  addOpdOrIpd,
+  searchPatient
 } from "../controllers/patient.controller.js";
 import upload from "../middlewares/multer.js";
 
@@ -22,5 +25,9 @@ router.put(
   updatePatientRegistration
 );
 router.post("/:id/patient-switch-to-ipd", switchPatientToIpd);
+router.get("/patient-full-details/:patientId", getPatientFullDetails);
+router.post("/add-opd-ipd", addOpdOrIpd);
+router.get("/patient-search",searchPatient)
+
 
 export default router;

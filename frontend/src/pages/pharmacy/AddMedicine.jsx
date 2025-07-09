@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Form,
   Input,
@@ -10,12 +10,14 @@ import {
   Col,
   Divider,
   Upload,
+  DatePicker,
 } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { medicineCategories, units } from "../../utils/localStorage";
 import { createOrUpdateMedicineApi } from "../../services/apis";
 import { toast } from "react-hot-toast";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
+import dayjs from "dayjs";
 
 const AddMedicine = ({ isEdit }) => {
   const [form] = Form.useForm();
@@ -24,56 +26,89 @@ const AddMedicine = ({ isEdit }) => {
   const location = useLocation();
   const { id } = useParams();
 
-  // Prefill form fields in edit mode
-  React.useEffect(() => {
+  useEffect(() => {
     if (isEdit && location.state) {
-      const { name, category, unit, manufacturer, buyPrice, sellPrice } =
-        location.state;
+      const {
+        name,
+        category,
+        unit,
+        manufacturer,
+        costPrice,
+        purchasePrice,
+        sellPrice,
+        mrp,
+        recDate,
+        batch,
+        manufactureDate,
+        expiryDate,
+        supplier,
+        invoiceNo,
+        invoiceDate,
+        currentStock,
+      } = location.state;
+
       form.setFieldsValue({
         name,
         category,
         unit,
         manufacturer,
-        buyPrice,
+        costPrice,
+        purchasePrice,
         sellPrice,
+        mrp,
+        recDate: recDate ? dayjs(recDate) : null,
+        batch,
+        manufactureDate: manufactureDate ? dayjs(manufactureDate) : null,
+        expiryDate: expiryDate ? dayjs(expiryDate) : null,
+        supplier,
+        invoiceNo,
+        invoiceDate: invoiceDate ? dayjs(invoiceDate) : null,
+        currentStock,
       });
-      // setFileList([{ uid: '-1', name: 'photo.jpg', status: 'done', url: location.state.photoUrl }]);
     }
   }, [isEdit, location.state, form]);
 
   const onFinish = async (values) => {
     const formData = new FormData();
+
     Object.entries(values).forEach(([key, value]) => {
-      if (key !== "photo") {
+      if (value && value.$d) {
+        formData.append(key, value.toISOString());
+      } else if (key !== "photo") {
         formData.append(key, value);
       }
     });
-    // Use id from useParams for edit
+
     if (isEdit && id) {
       formData.append("_id", id);
     }
+
     if (fileList.length > 0) {
       formData.append("medicinePhoto", fileList[0].originFileObj);
     }
+
     try {
       const res = await createOrUpdateMedicineApi(formData);
-      toast.success(
-        isEdit
-          ? "Medicine updated successfully!"
-          : "Medicine added successfully!"
-      );
-      form.resetFields();
-      setFileList([]);
-      navigate("/pharmacy");
+
+      if (res?.success) {
+        toast.success(res.message);
+        form.resetFields();
+        setFileList([]);
+        navigate("/pharmacy");
+      } else {
+        toast.error(res?.message || "Failed to save medicine");
+      }
     } catch (err) {
-      toast.error(err?.message || "Failed to add medicine");
+      console.error("Error saving medicine:", err);
+      toast.error(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to save medicine"
+      );
     }
   };
 
-  const normFile = (e) => {
-    if (Array.isArray(e)) return e;
-    return e && e.fileList;
-  };
+  const normFile = (e) => (Array.isArray(e) ? e : e?.fileList);
 
   return (
     <div className="w-full max-w-7xl mx-auto pb-8">
@@ -85,42 +120,38 @@ const AddMedicine = ({ isEdit }) => {
           layout="vertical"
           form={form}
           onFinish={onFinish}
+          onFinishFailed={() =>
+            toast.error("Please fill all required fields correctly.")
+          }
           size="large"
           style={{ marginTop: 16 }}
         >
           <Row gutter={24}>
+            {/* Name */}
             <Col xs={24} md={12}>
               <Form.Item
                 name="name"
                 label="Medicine Name"
-                rules={[
-                  { required: true, message: "Please enter medicine name" },
-                ]}
+                rules={[{ required: true }]}
               >
                 <Input placeholder="Enter medicine name" />
               </Form.Item>
             </Col>
-            <Col xs={24} md={12}>
+
+            {/* Category */}
+            <Col xs={24} md={6}>
               <Form.Item
                 name="category"
                 label="Medicine Category"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please enter or select category",
-                  },
-                ]}
+                rules={[{ required: true }]}
               >
                 <Select
                   showSearch
                   allowClear
-                  placeholder="Type or select category code"
-                  optionFilterProp="value"
+                  placeholder="Select category"
                   filterOption={(input, option) =>
                     option?.value?.toLowerCase().includes(input.toLowerCase())
                   }
-                  onSearch={() => {}}
-                  notFoundContent={null}
                 >
                   {medicineCategories.map((cat) => (
                     <Select.Option key={cat.code} value={cat.code}>
@@ -130,49 +161,54 @@ const AddMedicine = ({ isEdit }) => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col xs={24} md={12}>
-              <Form.Item
-                name="unit"
-                label="Unit"
-                rules={[
-                  { required: true, message: "Please enter or select unit" },
-                ]}
-              >
+
+            {/* Unit */}
+            <Col xs={24} md={6}>
+              <Form.Item name="unit" label="Unit" rules={[{ required: true }]}>
                 <Select
                   showSearch
                   allowClear
-                  placeholder="Type or select unit code"
-                  optionFilterProp="value"
+                  placeholder="Select unit"
                   filterOption={(input, option) =>
                     option?.value?.toLowerCase().includes(input.toLowerCase())
                   }
-                  onSearch={() => {}}
-                  notFoundContent={null}
                 >
-                  {units.map((unit) => (
-                    <Select.Option key={unit.code} value={unit.code}>
-                      {unit.code}
+                  {units.map((u) => (
+                    <Select.Option key={u.code} value={u.code}>
+                      {u.code}
                     </Select.Option>
                   ))}
                 </Select>
               </Form.Item>
             </Col>
+
+            {/* Manufacturer */}
             <Col xs={24} md={12}>
               <Form.Item
                 name="manufacturer"
                 label="Manufacturer"
-                rules={[
-                  { required: true, message: "Please enter manufacturer name" },
-                ]}
+                rules={[{ required: true }]}
               >
                 <Input placeholder="Enter manufacturer name" />
               </Form.Item>
             </Col>
+            {/* Supplier */}
             <Col xs={24} md={12}>
+              <Form.Item name="supplier" label="Supplier">
+                <Input placeholder="Enter supplier name" />
+              </Form.Item>
+            </Col>
+            {/* Batch */}
+            <Col xs={24} md={6}>
+              <Form.Item name="batch" label="Batch No.">
+                <Input placeholder="Enter batch number" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={6}>
               <Form.Item
-                name="buyPrice"
-                label="Buy Price"
-                rules={[{ required: true, message: "Enter buy price" }]}
+                name="costPrice"
+                label="Cost Price"
+                rules={[{ required: true }]}
               >
                 <InputNumber
                   min={0}
@@ -181,11 +217,24 @@ const AddMedicine = ({ isEdit }) => {
                 />
               </Form.Item>
             </Col>
-            <Col xs={24} md={12}>
+            <Col xs={24} md={6}>
+              <Form.Item
+                name="purchasePrice"
+                label="Purchase Price"
+                rules={[{ required: true }]}
+              >
+                <InputNumber
+                  min={0}
+                  className="w-full"
+                  placeholder="Purchase price"
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={6}>
               <Form.Item
                 name="sellPrice"
                 label="Selling Price"
-                rules={[{ required: true, message: "Enter selling price" }]}
+                rules={[{ required: true }]}
               >
                 <InputNumber
                   min={0}
@@ -194,23 +243,80 @@ const AddMedicine = ({ isEdit }) => {
                 />
               </Form.Item>
             </Col>
-            <Col xs={24} md={12}>
+            <Col xs={24} md={6}>
+              <Form.Item name="mrp" label="MRP" rules={[{ required: true }]}>
+                <InputNumber min={0} className="w-full" placeholder="MRP" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} md={6}>
+              <Form.Item
+                name="recDate"
+                label="Received Date"
+                rules={[{ required: true }]}
+              >
+                <DatePicker className="w-full" />
+              </Form.Item>
+            </Col>
+
+            {/* Manufacture Date */}
+            <Col xs={24} md={6}>
+              <Form.Item name="manufactureDate" label="Manufacture Date">
+                <DatePicker className="w-full" />
+              </Form.Item>
+            </Col>
+
+            {/* Expiry Date */}
+            <Col xs={24} md={6}>
+              <Form.Item
+                name="expiryDate"
+                label="Expiry Date"
+                rules={[{ required: true }]}
+              >
+                <DatePicker className="w-full" />
+              </Form.Item>
+            </Col>
+
+            {/* Invoice No. */}
+            <Col xs={24} md={6}>
+              <Form.Item name="invoiceNo" label="Invoice Number">
+                <Input placeholder="Enter invoice number" />
+              </Form.Item>
+            </Col>
+
+            {/* Invoice Date */}
+            <Col xs={24} md={6}>
+              <Form.Item name="invoiceDate" label="Invoice Date">
+                <DatePicker className="w-full" />
+              </Form.Item>
+            </Col>
+
+            {/* Current Stock */}
+            <Col xs={24} md={6}>
+              <Form.Item name="currentStock" label="Current Stock">
+                <InputNumber
+                  min={0}
+                  className="w-full"
+                  placeholder="Current stock"
+                />
+              </Form.Item>
+            </Col>
+
+            {/* Photo Upload */}
+            <Col xs={24} md={6} className="hidden">
               <Form.Item
                 name="photo"
                 label="Medicine Photo"
                 valuePropName="fileList"
                 getValueFromEvent={normFile}
-                className="mb-0"
-                extra="Upload a clear image of the medicine"
+                extra="Upload a clear image"
               >
                 <Upload
                   name="photo"
                   listType="picture"
                   beforeUpload={() => false}
                   fileList={fileList}
-                  onChange={({ fileList: newFileList }) =>
-                    setFileList(newFileList)
-                  }
+                  onChange={({ fileList: newList }) => setFileList(newList)}
                   maxCount={1}
                   accept="image/*"
                 >
@@ -219,6 +325,7 @@ const AddMedicine = ({ isEdit }) => {
               </Form.Item>
             </Col>
           </Row>
+
           <Divider />
           <Form.Item style={{ textAlign: "right" }}>
             <Button type="primary" htmlType="submit" size="large">

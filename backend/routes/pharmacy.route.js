@@ -1,5 +1,5 @@
 import express from 'express';
-import { createAndUpdateMedicine, deleteMedicine, getAllMedicines } from '../controllers/pharmacy.controller.js';
+import { createAndUpdateMedicine, deleteMedicine, getAllMedicines, uploadMedicineExcel } from '../controllers/pharmacy.controller.js';
 import upload from "../middlewares/multer.js";
 import { authenticateToken } from "../middlewares/auth.middleware.js";
 
@@ -12,7 +12,8 @@ router.post(
   upload.single('medicinePhoto'),
   createAndUpdateMedicine
 );
-
+router.post("/import-medicines", upload.single("file"), uploadMedicineExcel)
 router.get("/all-medicines", getAllMedicines);
 router.delete("/delete-medicine/:id", deleteMedicine);
+
 export default router;

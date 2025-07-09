@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Table,
   Card,
@@ -7,8 +7,6 @@ import {
   Input,
   Row,
   Col,
-  Select,
-  message,
   Drawer,
   Form,
 } from "antd";
@@ -22,9 +20,9 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   getOpdPatientsApi,
   getIpdPatientsApi,
-  getPatientDetailsApi,
   switchToIpdApi,
   getPatientDetailsIpdOpdApi,
+  dischargePatientApi,
 } from "../../services/apis";
 import dayjs from "dayjs";
 import PatientDetailsPreview from "../components/PatientDetailsPreview";
@@ -32,6 +30,8 @@ import IPDForm from "../components/formComponents/IPDForm";
 import { generateUniqueNumber } from "../../utils/helper";
 import { beds, bedTypes } from "../../utils/localStorage";
 import toast from "react-hot-toast";
+import DischargeModal from "../components/OPDIPD/IPDDischarge";
+import SymptomsForm from "../components/formComponents/SymptopmsForm";
 
 function OPDIPDList({ type }) {
   const [data, setData] = useState([]);
@@ -44,6 +44,42 @@ function OPDIPDList({ type }) {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const location = useLocation();
+  const [dischargeModalVisible, setDischargeModalVisible] = useState(false);
+  const [selectedSymptoms, setSelectedSymptoms] = useState([]);
+  const [symptomsTitles, setSymptomsTitles] = useState([]);
+  const [symptomsDescription, setSymptomsDescription] = useState("");
+
+  const handleDischargeClick = (record) => {
+    if (record.status === "Admitted") {
+      setSelectedPatient(record);
+      setDischargeModalVisible(true);
+    }
+  };
+  const updateStatusToDischarged = (list) =>
+    list.map((p) =>
+      p._id === selectedPatient._id ? { ...p, status: "Discharged" } : p
+    );
+
+  const handleDischargeSuccess = async (payload) => {
+    try {
+      const response = await dischargePatientApi(payload);
+      if (response.success) {
+        toast.success(
+          `Patient "${selectedPatient?.patient?.fullName}" discharged successfully!`
+        );
+        setDischargeModalVisible(false);
+        setSelectedPatient(null);
+
+        setFilteredData(updateStatusToDischarged(filteredData));
+        setData(updateStatusToDischarged(data));
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      toast.error(error?.message || "Failed to discharge patient");
+      console.error("Discharge error:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchPatients = async () => {
@@ -86,11 +122,8 @@ function OPDIPDList({ type }) {
   };
 
   const handleEdit = (record) => {
-    sessionStorage.setItem("editPatient", JSON.stringify(record));
-    console.log(record)
     if (record.ipdNumber) return navigate(`/ipd/edit/${record?._id}`);
-    else if (record.opdNumber)
-      return navigate(`/opd/edit/${record?._id}`);
+    else if (record.opdNumber) return navigate(`/opd/edit/${record?._id}`);
   };
 
   const handleSwitchType = (record) => {
@@ -103,23 +136,46 @@ function OPDIPDList({ type }) {
 
   const handleIpdSwitch = async () => {
     try {
-      const { admissionDateTime, ...values } = form.getFieldsValue(true);
-      // console.log(selectedPatient)
-      // console.log(values)
-      const response = await switchToIpdApi(ipdPatient.patient?._id, values);
-      console.log(response);
-      toast.success(
-        `Patient "${ipdPatient?.patient?.fullName}" switched to IPD successfully!`
-      );
-      setIpdModalOpen(false);
-      setIpdPatient(null);
+      const checkValues = await form.validateFields();
+      const { admissionDateTime, symptomsTitles, ...values } = checkValues;
+
+      const payload = {
+        ...values,
+        symptoms: {
+          symptomNames: selectedSymptoms,
+          symptomTitles: symptomsTitles,
+          description: symptomsDescription,
+        },
+      };
+      // console.log("Switching to IPD with payload:", payload);
+
+      const response = await switchToIpdApi(ipdPatient.patient?._id, payload);
+
+      if (response.success) {
+        toast.success(
+          `Patient "${ipdPatient?.patient?.fullName}" switched to IPD successfully!`
+        );
+        setIpdModalOpen(false);
+        setIpdPatient(null);
+      } else {
+        toast.error(response.message || "Failed to switch to IPD");
+      }
     } catch (error) {
-      toast.error(error?.message || "Failed to switch to IPD");
+      if (error?.errorFields) {
+        toast.error("Please fill all required fields correctly.");
+      } else {
+        toast.error(error?.message || "Failed to switch to IPD");
+      }
     }
   };
 
   const handleAddPrescription = (record) => {
-    navigate("/addPrescription", { state: record });
+    const newRecord =
+      type === "opd"
+        ? { ...record }
+        : { ...record, doctor: record?.attendingDoctor };
+
+    navigate("/addPrescription", { state: newRecord });
   };
 
   const columns = [
@@ -129,7 +185,7 @@ function OPDIPDList({ type }) {
       render: (_, record) => {
         const rawDate =
           type === "ipd" ? record.admissionDate : record.visitDateTime;
-        return rawDate ? dayjs(rawDate).format("DD-MM-YYYY HH:mm") : "-";
+        return rawDate ? dayjs(rawDate).format("DD/MM/YYYY HH:mm") : "-";
       },
       sorter: (a, b) => {
         const aDate = new Date(
@@ -146,8 +202,13 @@ function OPDIPDList({ type }) {
       key: "number",
       render: (_, record) => {
         const id = type === "ipd" ? record.ipdNumber : record.opdNumber;
+        const path = type === "ipd" ? `/ipd/${id}` : `/opd/${id}`;
         return id ? (
-          <Link to={`/patient/${id}`} className="text-blue-600">
+          <Link
+            to={path}
+            state={{ _id: record?._id }}
+            className="text-blue-600"
+          >
             {id}
           </Link>
         ) : (
@@ -185,10 +246,27 @@ function OPDIPDList({ type }) {
           {
             title: "Status",
             key: "status",
-            render: (_, record) => record.status || "-",
+            render: (_, record) => {
+              const isAdmitted = record.status === "Admitted";
+
+              return isAdmitted ? (
+                <Tag
+                  color="green"
+                  onClick={() => handleDischargeClick(record)}
+                  className="cursor-pointer hover:scale-110"
+                >
+                  {record.status}
+                </Tag>
+              ) : (
+                <Tag color="red" className="cursor-not-allowed">
+                  {record.status}
+                </Tag>
+              );
+            },
           },
         ]
       : []),
+
     {
       title: "Actions",
       key: "actions",
@@ -202,15 +280,6 @@ function OPDIPDList({ type }) {
               title="View"
             />
           </Col>
-          <Col>
-            <Button
-              size="small"
-              type="primary"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-              title="Edit"
-            />
-          </Col>
           {type !== "ipd" && (
             <Col>
               <Button
@@ -222,83 +291,116 @@ function OPDIPDList({ type }) {
               />
             </Col>
           )}
-          <Col>
-            <Button
-              size="small"
-              type="default"
-              icon={<MedicineBoxOutlined />}
-              onClick={() => handleAddPrescription(record)}
-              title="Add Prescription"
-            />
-          </Col>
+          {record.status !== "Discharged" && (
+            <>
+              <Col>
+                <Button
+                  size="small"
+                  type="primary"
+                  icon={<EditOutlined />}
+                  onClick={() => handleEdit(record)}
+                  title="Edit"
+                />
+              </Col>
+              <Col>
+                <Button
+                  size="small"
+                  type="default"
+                  icon={<MedicineBoxOutlined />}
+                  onClick={() => handleAddPrescription(record)}
+                  title="Add Prescription"
+                />
+              </Col>
+            </>
+          )}
         </Row>
       ),
     },
   ];
 
   return (
-    <Card
-      title={
-        <Row gutter={[8, 20]} align="middle" justify="space-between">
-          <Col>
-            <span style={{ fontWeight: 600, fontSize: 18 }}>
-              {type === "ipd" ? "IPD Patient List" : "OPD Patient List"}
-            </span>
-          </Col>
-          <Col md={8}>
-            <Input.Search
-              allowClear
-              placeholder="Search by name or phone"
-              onSearch={setSearchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              className=" mb-4 md:mb-2"
-              value={searchText}
-            />
-          </Col>
-        </Row>
-      }
-      bordered={false}
-    >
-      <Table
-        columns={columns}
-        dataSource={filteredData}
-        pagination={{ pageSize: 10 }}
-        scroll={{ x: 900 }}
-        responsive
-      />
-
-      <PatientDetailsPreview
-        open={viewDrawer}
-        onClose={() => setViewDrawer(false)}
-        patient={selectedPatient}
-        type={type}
-      />
-
-      <Drawer
-        title="Switch to IPD"
-        open={ipdModalOpen}
-        onClose={() => setIpdModalOpen(false)}
-        width={600}
-        destroyOnClose
-        footer={
-          <Row justify="end" gutter={8}>
+    <>
+      <Card
+        title={
+          <Row gutter={[8, 20]} align="middle" justify="space-between">
             <Col>
-              <Button onClick={() => setIpdModalOpen(false)}>Cancel</Button>
+              <span style={{ fontWeight: 600, fontSize: 18 }}>
+                {type === "ipd" ? "IPD Patient List" : "OPD Patient List"}
+              </span>
             </Col>
-            <Col>
-              <Button type="primary" onClick={handleIpdSwitch}>
-                Switch
-              </Button>
+            <Col md={8}>
+              <Input.Search
+                allowClear
+                placeholder="Search by name or phone"
+                onSearch={setSearchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                className=" mb-4 md:mb-2"
+                value={searchText}
+              />
             </Col>
           </Row>
         }
+        bordered={false}
       >
-        {/* Wrap IPDForm in Form for context */}
-        <Form form={form} layout="vertical">
-          <IPDForm form={form} bedTypes={bedTypes} beds={beds} />
-        </Form>
-      </Drawer>
-    </Card>
+        <Table
+          columns={columns}
+          dataSource={filteredData}
+          pagination={{ pageSize: 10 }}
+          scroll={{ x: 900 }}
+          responsive
+        />
+
+        <PatientDetailsPreview
+          open={viewDrawer}
+          onClose={() => setViewDrawer(false)}
+          patient={selectedPatient}
+          type={type}
+        />
+
+        <Drawer
+          title="Switch to IPD"
+          open={ipdModalOpen}
+          onClose={() => setIpdModalOpen(false)}
+          width={600}
+          destroyOnClose
+          footer={
+            <Row justify="end" gutter={8}>
+              <Col>
+                <Button onClick={() => setIpdModalOpen(false)}>Cancel</Button>
+              </Col>
+              <Col>
+                <Button type="primary" onClick={handleIpdSwitch}>
+                  Switch
+                </Button>
+              </Col>
+            </Row>
+          }
+        >
+          {/* Wrap IPDForm in Form for context */}
+          <Form form={form} layout="vertical">
+            <IPDForm form={form} bedTypes={bedTypes} beds={beds} />
+            <SymptomsForm
+              form={form}
+              selectedSymptoms={selectedSymptoms}
+              setSelectedSymptoms={setSelectedSymptoms}
+              symptomsTitles={symptomsTitles}
+              setSymptomsTitles={setSymptomsTitles}
+              symptomsDescription={symptomsDescription}
+              setSymptomsDescription={setSymptomsDescription}
+            />
+          </Form>
+        </Drawer>
+      </Card>
+      <DischargeModal
+        visible={dischargeModalVisible}
+        onClose={() => {
+          setDischargeModalVisible(false);
+          setSelectedPatient(null);
+        }}
+        onSuccess={handleDischargeSuccess}
+        ipdPatient={selectedPatient}
+      />
+    </>
   );
 }
 

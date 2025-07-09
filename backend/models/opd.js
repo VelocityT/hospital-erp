@@ -18,19 +18,30 @@ const opdVisitSchema = new mongoose.Schema({
     symptomTitles: [String],
     description: String,
   },
-  diagnosis: String,
-  vitals: {
-    bp: String,
-    pulse: Number,
-    temperature: Number,
-    weight: Number,
-    height: Number,
-  },
-  nextAppointment: Date,
+  // diagnosis: String,
+  // vitals: {
+  //   bp: String,
+  //   pulse: Number,
+  //   temperature: Number,
+  //   weight: Number,
+  //   height: Number,
+  // },
+  // nextAppointment: Date,
   status: {
     type: String,
-    enum: ["Scheduled", "In Progress", "Completed"],
+    enum: ["Scheduled", "Completed"],
     default: "Scheduled",
+  },
+  payment: {
+    status: {
+      type: String,
+      enum: ["paid", "unpaid"],
+      default: "unpaid",
+    },
+    bill: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Bill",
+    },
   },
 });
 

@@ -28,7 +28,7 @@ export const loginUser = async (req, res) => {
     getUser.lastLogin = now;
     await getUser.save();
 
-    const formattedLastLogin = dayjs(now).format("DD-MM-YY HH:mm");
+    const formattedLastLogin = dayjs(now);
 
     const payload = {
       email: getUser.email,

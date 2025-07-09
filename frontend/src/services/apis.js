@@ -54,6 +54,14 @@ export const getUsersApi = async (params) => {
     return error.response?.data || error.message;
   }
 };
+export const getStaffByIdApi = async (id) => {
+  try {
+    const response = await API.get(`/user/get-user/${id}`);
+    return response.data;
+  } catch (error) {
+    return error.response?.data || error.message;
+  }
+};
 export const getDoctorsApi = async () => {
   try {
     const response = await API.get("/doctor/all-doctors");
@@ -150,9 +158,9 @@ export const switchToIpdApi = async (patientId, payload) => {
   }
 };
 
-export const createUserApi = async (payload) => {
+export const updateOrCreateUserApi = async (payload) => {
   try {
-    const response = await API.post("/user/user-registration", payload, {
+    const response = await API.post("/user/register-update-user", payload, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -290,4 +298,60 @@ export const deleteMedicineApi = async (id) => {
   } catch (error) {
     return error.response?.data || { code: 500, message: "API Error" };
   }
+};
+export const dischargePatientApi = async (payload) => {
+  try {
+    const res = await API.put("/ipd/discharge-ipd-patient", payload);
+    return res.data;
+  } catch (error) {
+    return error.response?.data || { success: false, message: "API Error" };
+  }
+};
+export const getPatientFullDetailsApi = async (patientId) => {
+  try {
+    const response = await API.get(`/patient/patient-full-details/${patientId}`);
+    return response.data;
+  } catch (error) {
+    return error.response?.data || error.message;
+  }
+};
+export const addOpdOrIpdApi = async (payload) => {
+  try {
+    const res = await API.post("/patient/add-opd-ipd", payload);
+    return res.data;
+  } catch (error) {
+    return error.response?.data || { success: false, message: "API Error" };
+  }
+};
+export const searchPatientApi = async (query) => {
+  try {
+    const res = await API.get(`/patient/patient-search?q=${query}`);
+    return res.data;
+  } catch (err) {
+    return { success: false, message: "Search failed" };
+  }
+};
+export const payPatientIpdBillApi = async (payload) => {
+  try {
+    const res = await API.post("/pay/patient-ipd-bill",payload);
+    return res.data;
+  } catch (err) {
+    return { success: false, message: "Search failed" };
+  }
+};
+export const payPatientOpdBillApi = async (payload) => {
+  try {
+    const res = await API.post("/pay/patient-opd-bill",payload);
+    return res.data;
+  } catch (err) {
+    return { success: false, message: "Search failed" };
+  }
+};
+export const uploadMedicineExcelApi = async (formData) => {
+  return await API.post("/pharmacy/import-medicines", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    withCredentials: true,
+  });
 };

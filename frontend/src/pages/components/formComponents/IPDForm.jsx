@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, Row, Col, Form, Input, Select, DatePicker, message } from "antd";
+import { Card, Row, Col, Form, Input, Select, DatePicker } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
 import {
@@ -9,7 +9,7 @@ import {
 import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
-const IPDForm = ({ form, editIpdBed }) => {
+const IPDForm = ({ form }) => {
   const [doctors, setDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [wardOptions, setWardOptions] = useState([]);
@@ -129,7 +129,7 @@ const IPDForm = ({ form, editIpdBed }) => {
             <DatePicker
               size="large"
               style={{ width: "100%" }}
-              format="YYYY-MM-DD"
+              format="DD/MM/YYYY"
               disabled
               value={form.getFieldValue("admissionDateTime") || dayjs()}
             />

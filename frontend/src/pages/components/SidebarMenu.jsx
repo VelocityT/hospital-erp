@@ -1,4 +1,4 @@
-import React from "react";
+import { MdRequestQuote } from "react-icons/md";
 import { Layout, Menu } from "antd";
 import {
   UserAddOutlined,
@@ -15,6 +15,11 @@ const { Sider } = Layout;
 const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
   // Define role-based menu items
   const adminMenu = [
+    {
+  key: "billing",
+  icon: <MdRequestQuote />,
+  label: <Link to="/billing/patientBilling">Billing</Link>,
+},
     {
       key: "registration",
       icon: <UserAddOutlined />,
@@ -193,7 +198,7 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       onCollapse={setCollapsed}
       breakpoint="md"
       collapsedWidth={80}
-      className="overflow-auto"
+      className="overflow-auto print:hidden"
       style={{
         position: "fixed",
         left: 0,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Input, Button, InputNumber } from "antd";
 import { toast } from "react-hot-toast";
 import { useSelector } from "react-redux";
@@ -42,7 +42,7 @@ const AddBeds = ({ ward, setAddBedsModalOpen, setBeds }) => {
     try {
       setLoading(true);
       const res = await createBedsApi(payload);
-      console.log(res);
+      // console.log(res);
       if (res.success) {
         toast.success("Beds created successfully");
         setBeds((prevBeds) => [...prevBeds, ...res.data]);
@@ -61,7 +61,7 @@ const AddBeds = ({ ward, setAddBedsModalOpen, setBeds }) => {
   };
 
   return (
-    <div className="bg-white p-6 max-w-xl mx-auto">
+    <div className=" p-6 max-w-xl mx-auto">
       <div className="mb-4">
         <label className="block mb-1 font-medium">Ward</label>
         <Input

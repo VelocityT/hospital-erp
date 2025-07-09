@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getBedsByWardIdApi, deleteLastBedApi } from "../../services/apis";
 import {
@@ -10,7 +10,6 @@ import {
   Modal,
   Row,
   Col,
-  message,
 } from "antd";
 import {
   LoadingOutlined,
@@ -163,7 +162,11 @@ const BedsList = () => {
         footer={null}
         destroyOnHidden
       >
-        <BedInfo bed={selectedBed} setBeds={setBeds} onDeleteSuccess={handleBedDeleteSuccess} />
+        <BedInfo
+          bed={selectedBed}
+          setBeds={setBeds}
+          onDeleteSuccess={handleBedDeleteSuccess}
+        />
       </Modal>
 
       {beds.length === 0 ? (
@@ -173,25 +176,42 @@ const BedsList = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {beds.map((bed) => (
-            <Tooltip title={ward.name} key={bed._id}>
+            <Tooltip
+              title={ward.name}
+              key={bed._id}
+              color={
+                bed.status === "Available"
+                  ? "#bbf7d0"
+                  : bed.status === "Occupied"
+                  ? "#fecaca"
+                  : "#fef08a"
+              }
+              overlayInnerStyle={{
+                color: "#1f2937",
+              }}
+            >
               <div
-                className={`p-4 rounded-lg shadow-md text-center transition-all cursor-pointer min-w-[120px] ${
-                  bed.status === "Available"
-                    ? "bg-green-100 border-green-400"
-                    : bed.status === "Occupied"
-                    ? "bg-red-100 border-red-400"
-                    : "bg-yellow-100 border-yellow-400"
-                } border`}
+                className={`p-4 rounded-lg shadow-md text-center transition-all cursor-pointer min-w-[120px]
+      border
+      ${
+        bed.status === "Available"
+          ? "bg-green-100 dark:bg-green-900 border-green-400"
+          : bed.status === "Occupied"
+          ? "bg-red-100 dark:bg-red-900 border-red-400"
+          : "bg-yellow-100 dark:bg-yellow-900 border-yellow-400"
+      }`}
                 onClick={() => {
                   setSelectedBed(bed);
                   setBedInfoModalOpen(true);
                 }}
               >
-                <FaBed className="text-4xl mx-auto mb-2 text-gray-700" />
-                <div className="font-bold text-lg break-all">
+                <FaBed className="text-4xl mx-auto mb-2 text-gray-700 dark:text-gray-200" />
+                <div className="font-bold text-lg break-all text-gray-800 dark:text-white">
                   {bed.bedNumber}
                 </div>
-                <div className="text-sm text-gray-600">₹{bed.charge || 0}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">
+                  ₹{bed.charge || 0}
+                </div>
                 <Tag
                   className="mt-1"
                   color={

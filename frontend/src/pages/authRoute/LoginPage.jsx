@@ -83,151 +83,107 @@ const LoginPage = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "linear-gradient(135deg, #e0e7ff 0%, #f0f2f5 100%)",
-      }}
-    >
-      <Card
-        style={{
-          width: 350,
-          boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
-          borderRadius: 12,
-        }}
-        bodyStyle={{ padding: 32 }}
+<div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 transition-colors">
+  <Card
+    className="w-[350px] rounded-xl shadow-md dark:bg-gray-800 dark:text-white"
+    bodyStyle={{ padding: 32 }}
+  >
+    <div className="text-center mb-4">
+      <Title
+        level={3}
+        className="!mb-0 !text-gray-800 dark:!text-white"
       >
-        <div style={{ textAlign: "center", marginBottom: 16 }}>
-          <Title level={3} style={{ marginBottom: 0 }}>
-            Hospital ERP Login
-          </Title>
-        </div>
-        <Form layout="vertical" onFinish={onFinish} form={form}>
-          <Form.Item
-            label="Role"
-            name="role"
-            rules={[{ required: true, message: "Please select your role!" }]}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: 8,
-              }}
-            >
-              {roles.map((role) => (
-                <button
-                  key={role.key}
-                  type="button"
-                  onClick={() => setSelectedRole(role.key)}
-                  style={{
-                    border:
-                      selectedRole === role.key
-                        ? "2px solid #1890ff"
-                        : "1px solid #e5e7eb",
-                    background: selectedRole === role.key ? "#e6f7ff" : "#fff",
-                    borderRadius: "50%",
-                    width: 40,
-                    height: 40,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 20,
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                    outline: "none",
-                  }}
-                  tabIndex={0}
-                  aria-label={role.label}
-                >
-                  {role.icon}
-                </button>
-              ))}
-            </div>
-            {/* Show role labels below icons */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: 4,
-              }}
-            >
-              {roles.map((role) => (
-                <span
-                  key={role.key}
-                  style={{
-                    fontSize: 11,
-                    color: "#555",
-                    width: 40,
-                    textAlign: "center",
-                  }}
-                >
-                  {role.label}
-                </span>
-              ))}
-            </div>
-            {/* Show error message below role buttons */}
-            {roleError && (
-              <div
-                style={{
-                  color: "#ff4d4f",
-                  fontSize: 12,
-                  marginTop: 6,
-                  textAlign: "center",
-                }}
-              >
-                {roleError}
-              </div>
-            )}
-          </Form.Item>
-          <Form.Item
-            label="Email"
-            name="email"
-            rules={[
-              { required: true, message: "Please input your email!" },
-              { type: "email", message: "Please enter a valid email!" },
-            ]}
-          >
-            <Input
-              size="large"
-              prefix={<UserOutlined />}
-              placeholder="Enter your email"
-              type="email"
-            />
-          </Form.Item>
-          <Form.Item
-            label="Password"
-            name="password"
-            rules={[{ required: true, message: "Please input your password!" }]}
-          >
-            <Input.Password size="large" placeholder="Enter your password" />
-          </Form.Item>
-          <Form.Item shouldUpdate>
-            {() => (
-              <Button
-                type="primary"
-                htmlType="submit"
-                block
-                loading={loading}
-                size="large"
-                style={{
-                  borderRadius: 8,
-                  fontWeight: 600,
-                  letterSpacing: 1,
-                  marginTop: 8,
-                }}
-                disabled={!selectedRole}
-              >
-                Login
-              </Button>
-            )}
-          </Form.Item>
-        </Form>
-      </Card>
+        Hospital ERP Login
+      </Title>
     </div>
+    <Form layout="vertical" onFinish={onFinish} form={form}>
+      {/* Role Selector */}
+      <Form.Item
+        label="Role"
+        name="role"
+        rules={[{ required: true, message: "Please select your role!" }]}
+      >
+        <div className="flex justify-between mb-2">
+          {roles.map((role) => (
+            <button
+              key={role.key}
+              type="button"
+              onClick={() => setSelectedRole(role.key)}
+              className={`w-10 h-10 flex items-center justify-center text-xl rounded-full transition-all outline-none border ${
+                selectedRole === role.key
+                  ? "border-blue-500 bg-blue-100 dark:bg-blue-900"
+                  : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+              }`}
+              tabIndex={0}
+              aria-label={role.label}
+            >
+              {role.icon}
+            </button>
+          ))}
+        </div>
+        <div className="flex justify-between mt-1">
+          {roles.map((role) => (
+            <span
+              key={role.key}
+              className="text-xs text-gray-600 dark:text-gray-300 w-10 text-center"
+            >
+              {role.label}
+            </span>
+          ))}
+        </div>
+        {roleError && (
+          <div className="text-red-500 text-xs mt-1 text-center">
+            {roleError}
+          </div>
+        )}
+      </Form.Item>
+
+      {/* Email */}
+      <Form.Item
+        label="Email"
+        name="email"
+        rules={[
+          { required: true, message: "Please input your email!" },
+          { type: "email", message: "Please enter a valid email!" },
+        ]}
+      >
+        <Input
+          size="large"
+          prefix={<UserOutlined />}
+          placeholder="Enter your email"
+          type="email"
+        />
+      </Form.Item>
+
+      {/* Password */}
+      <Form.Item
+        label="Password"
+        name="password"
+        rules={[{ required: true, message: "Please input your password!" }]}
+      >
+        <Input.Password size="large" placeholder="Enter your password" />
+      </Form.Item>
+
+      {/* Submit */}
+      <Form.Item shouldUpdate>
+        {() => (
+          <Button
+            type="primary"
+            htmlType="submit"
+            block
+            loading={loading}
+            size="large"
+            className="rounded-lg font-semibold tracking-wide mt-2"
+            disabled={!selectedRole}
+          >
+            Login
+          </Button>
+        )}
+      </Form.Item>
+    </Form>
+  </Card>
+</div>
+
   );
 };
 

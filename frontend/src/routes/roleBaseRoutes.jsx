@@ -1,10 +1,8 @@
-import OPDDashboard from "../pages/OPD/OPDdashboard";
 import PatientRegistration from "../pages/Patient/PatientRegistrationPage";
-import StaffRegistrationForm from "../pages/staff/StaffRegistrationForm";
+import StaffRegistrationForm from "../pages/staff/StaffRegistrationUpdateForm";
 import StaffList from "../pages/staff/StaffList";
 import Prescription from "../pages/prescription/Prescription";
 import DoctorList from "../pages/Doctor/DoctorList";
-import AddDoctor from "../pages/Doctor/AddDoctor";
 import PatientList from "../pages/Patient/PatientList";
 import PatientProfile from "../pages/Patient/PatientProfile";
 import OPDIPDList from "../pages/OPDIPD/OPDIPDList";
@@ -15,6 +13,10 @@ import WardManagment from "../pages/wardManagment/WardManagment";
 import BedsList from "../pages/wardManagment/BedsList";
 import AddMedicine from "../pages/pharmacy/AddMedicine";
 import MedicineList from "../pages/pharmacy/MedicineList";
+import AddOpdIpd from "../pages/OPDIPD/AddOpdIpd";
+import PatientBilling from "../pages/billing/PatientBilling";
+import StaffProfile from "../pages/staff/StaffProfile";
+import IpdOpdDetails from "../pages/OPDIPD/IpdOpdDetails";
 
 const commonRoutes = [
   { path: "/patients", element: <PatientList /> },
@@ -29,10 +31,17 @@ const commonRoutes = [
   },
   { path: "/ipd/edit/:ipdId", element: <PatientRegistration edit="ipd" /> },
   { path: "/opd/edit/:opdId", element: <PatientRegistration edit="opd" /> },
+  { path: "/ipd/add/:patientId", element: <AddOpdIpd add="ipd" /> },
+  { path: "/opd/add/:patientId", element: <AddOpdIpd add="opd" /> },
   { path: "/addPrescription", element: <Prescription /> },
   { path: "/pharmacy/medicine/add", element: <AddMedicine /> },
-  { path: "/pharmacy/medicine/edit/:id", element: <AddMedicine isEdit={true} /> },
+  {
+    path: "/pharmacy/medicine/edit/:id",
+    element: <AddMedicine isEdit={true} />,
+  },
   { path: "/pharmacy", element: <MedicineList /> },
+  { path: "/patient/profile/:patientId", element: <PatientProfile /> },
+  { path: "/billing/patientBilling", element: <PatientBilling /> },
 ];
 
 export const roleRoutes = {
@@ -41,7 +50,13 @@ export const roleRoutes = {
     { path: "/registration", element: <PatientRegistration /> },
     { path: "/staff", element: <StaffList /> },
     { path: "/staff/registration", element: <StaffRegistrationForm /> },
-    { path: "/doctor-registration", element: <AddDoctor /> },
+    {
+      path: "/staff/edit/:staffId",
+      element: <StaffRegistrationForm edit={true} />,
+    },
+    { path: "/staff/profile/:staffId", element: <StaffProfile /> },
+    { path: "/ipd/:ipdId", element: <IpdOpdDetails /> },
+    { path: "/opd/:opdId", element: <IpdOpdDetails /> },
   ],
 
   doctor: [
