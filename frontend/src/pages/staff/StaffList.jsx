@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getAllStaffApi } from "../../services/apis";
 import { Row, Col, Input, Tag, Spin, Empty } from "antd";
 import { useNavigate } from "react-router-dom";
@@ -83,7 +83,7 @@ const StaffList = () => {
               xl={6}
               xxl={4}
             >
-              <div className="flex flex-wrap items-center bg-white rounded-xl shadow hover:shadow-md transition-all duration-200 p-4 w-full max-w-xl mx-auto">
+              <div className="flex flex-wrap items-center rounded-xl shadow hover:shadow-md transition-all duration-200 p-4 w-full max-w-xl mx-auto cursor-pointer" onClick={()=>navigate("/staff/profile/"+staff?.staffId,{state:{_id:staff._id}})}>
                 <img
                   alt={staff.fullName}
                   src={dummyImg}
@@ -93,7 +93,7 @@ const StaffList = () => {
                   <div className="font-semibold text-base mb-1">
                     {staff.fullName}
                   </div>
-                  <div className="text-xs text-gray-500 mb-1">
+                  <div className="text-xs mb-1">
                     ID: {staff.staffId}
                   </div>
                   <div className="mb-1">
@@ -104,7 +104,7 @@ const StaffList = () => {
                       <Tag color="green">{staff.department}</Tag>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs">
                     Gender: {staff.gender}
                   </div>
                 </div>

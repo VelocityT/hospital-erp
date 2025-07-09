@@ -1,4 +1,4 @@
-import React from "react";
+import { MdRequestQuote } from "react-icons/md";
 import { Layout, Menu } from "antd";
 import {
   UserAddOutlined,
@@ -6,6 +6,7 @@ import {
   SolutionOutlined,
   ProfileOutlined,
   MedicineBoxOutlined,
+  RestOutlined,
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 
@@ -14,6 +15,11 @@ const { Sider } = Layout;
 const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
   // Define role-based menu items
   const adminMenu = [
+    {
+  key: "billing",
+  icon: <MdRequestQuote />,
+  label: <Link to="/billing/patientBilling">Billing</Link>,
+},
     {
       key: "registration",
       icon: <UserAddOutlined />,
@@ -44,6 +50,16 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       icon: <TeamOutlined />,
       label: <Link to="/staff">Staff Management</Link>,
     },
+    {
+      key: "ward-management",
+      icon: <RestOutlined />,
+      label: <Link to="/wards">Ward and Beds</Link>,
+    },
+        {
+      key:"Pharmacy",
+      icon: <MedicineBoxOutlined />,
+      label: <Link to="/pharmacy">Pharmacy</Link>,
+    }
   ];
 
   const doctorMenu = [
@@ -66,6 +82,11 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       key: "ipd-list",
       icon: <ProfileOutlined />,
       label: <Link to="/ipd-list">IPD List</Link>,
+    },
+    {
+      key: "ward-management",
+      icon: <RestOutlined />,
+      label: <Link to="/wards">Ward and Beds</Link>,
     },
   ];
 
@@ -90,6 +111,11 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       icon: <ProfileOutlined />,
       label: <Link to="/ipd-list">IPD List</Link>,
     },
+    {
+      key: "ward-management",
+      icon: <RestOutlined />,
+      label: <Link to="/wards">Ward and Beds</Link>,
+    },
   ];
 
   const pharmacistMenu = [
@@ -112,6 +138,11 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       key: "ipd-list",
       icon: <ProfileOutlined />,
       label: <Link to="/ipd-list">IPD List</Link>,
+    },
+    {
+      key: "ward-management",
+      icon: <RestOutlined />,
+      label: <Link to="/wards">Ward and Beds</Link>,
     },
   ];
 
@@ -141,14 +172,24 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       icon: <ProfileOutlined />,
       label: <Link to="/ipd-list">IPD List</Link>,
     },
+    {
+      key: "ward-management",
+      icon: <RestOutlined />,
+      label: <Link to="/wards">Ward and Beds</Link>,
+    },
+    {
+      key:"Pharmacy",
+      icon: <MedicineBoxOutlined />,
+      label: <Link to="/pharmacy">Pharmacy</Link>,
+    }
   ];
 
   let menuItems = [];
   if (user?.role === "admin") menuItems = adminMenu;
-  else if (user?.role === "doctor") menuItems = doctorMenu;
-  else if (user?.role === "nurse") menuItems = nurseMenu;
-  else if (user?.role === "pharmacist") menuItems = pharmacistMenu;
-  else if (user?.role === "receptionist") menuItems = receptionistMenu;
+  // else if (user?.role === "doctor") menuItems = doctorMenu;
+  // else if (user?.role === "nurse") menuItems = nurseMenu;
+  // else if (user?.role === "pharmacist") menuItems = pharmacistMenu;
+  // else if (user?.role === "receptionist") menuItems = receptionistMenu;
 
   return (
     <Sider
@@ -157,7 +198,7 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       onCollapse={setCollapsed}
       breakpoint="md"
       collapsedWidth={80}
-      className="overflow-auto"
+      className="overflow-auto print:hidden"
       style={{
         position: "fixed",
         left: 0,

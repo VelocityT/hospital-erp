@@ -1,8 +1,9 @@
 import express from 'express';
-const router = express.Router();
-import { getDoctorsForPatientResgistration} from '../controllers/doctor.controller.js';
+import { getDoctorsForPatientResgistration } from '../controllers/doctor.controller.js';
 
-router.get("/",getDoctorsForPatientResgistration)
+const router = express.Router();
+
+router.get("/all-doctors",getDoctorsForPatientResgistration)
 
 
 export default router;

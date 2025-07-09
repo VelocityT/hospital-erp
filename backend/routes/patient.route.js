@@ -4,23 +4,30 @@ import {
   createPatient,
   getAllPatients,
   getPatientDetails,
-  editPatientRegistrationDetails,
+  updatePatientRegistration,
   switchPatientToIpd,
-  getPatientIpdOpdDetails
+  getPatientIpdOpdDetails,
+  getPatientFullDetails,
+  addOpdOrIpd,
+  searchPatient
 } from "../controllers/patient.controller.js";
 import upload from "../middlewares/multer.js";
 
-router.post("/", upload.array("medicalDocuments", 5), createPatient);
+router.post("/patient-registration", upload.array("medicalDocuments", 5), createPatient);
 
-router.get("/", getAllPatients);
+router.get("/all-patients", getAllPatients);
 
-router.get("/:id", getPatientDetails);
-router.get("/ipd-opd/:id",getPatientIpdOpdDetails)
+router.get("/patient-details/:id", getPatientDetails);
+router.get("/ipd-opd-details/:id",getPatientIpdOpdDetails)
 router.put(
-  "/:id",
+  "/patient-registration/edit/:id",
   upload.array("medicalDocuments", 5),
-  editPatientRegistrationDetails
+  updatePatientRegistration
 );
-router.post("/:id/switch-to-ipd", switchPatientToIpd);
+router.post("/:id/patient-switch-to-ipd", switchPatientToIpd);
+router.get("/patient-full-details/:patientId", getPatientFullDetails);
+router.post("/add-opd-ipd", addOpdOrIpd);
+router.get("/patient-search",searchPatient)
+
 
 export default router;

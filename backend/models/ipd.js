@@ -9,24 +9,38 @@ const ipdAdmissionSchema = new mongoose.Schema({
   },
   admissionDate: { type: Date, default: Date.now },
   notes: String,
-  dischargeDate: Date,
+  dischargeSummary: {
+    dischargeReason: String,
+    dischargeDate: Date,
+    dischargeCondition: String,
+    dischargedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  },
   reason: String,
-  bed: String,
-  ward: String,
+  bed: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Bed",
+  },
+  ward: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Ward",
+  },
   height: String,
   weight: String,
   bloodPressure: String,
-
-  // bed: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: 'Bed'
-  // },
   attendingDoctor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  diagnosis: String,
-  treatmentPlan: String,
+  // diagnosis: String,
+  // treatmentPlan: String,
+  symptoms: {
+    symptomNames: [String],
+    symptomTitles: [String],
+    description: String,
+  },
   status: {
     type: String,
     enum: ["Admitted", "Discharged"],
@@ -39,6 +53,23 @@ const ipdAdmissionSchema = new mongoose.Schema({
       signedAt: Date,
     },
   ],
+  payment: {
+    status: {
+      type: String,
+      enum: ["Paid", "Unpaid", "Pending"],
+    default: "Unpaid",
+    },
+    // amount: {
+    //   type: Number,
+    //   min: [0, "Amount cannot be negative"],
+    // },
+    bill: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Bill",
+      },
+    ],
+  },
 });
 
 const Ipd = mongoose.model("Ipd", ipdAdmissionSchema);

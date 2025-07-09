@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Form,
   Input,
@@ -8,7 +8,6 @@ import {
   Card,
   Row,
   Col,
-  message,
   Upload,
 } from "antd";
 import {
@@ -27,8 +26,9 @@ import {
   UploadOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { createUserApi } from "../../services/apis";
-import { useSelector } from "react-redux";
+import { updateOrCreateUserApi } from "../../services/apis";
+import toast from "react-hot-toast";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const { Option } = Select;
 const bloodGroups = [
@@ -43,11 +43,14 @@ const bloodGroups = [
   "Unknown",
 ];
 
-function StaffRegistrationForm() {
-  const user  = useSelector((state) => state.user)
-  console.log(user)
+function StaffRegistrationForm({ edit = false }) {
+  const navigate = useNavigate();
+  // console.log(user);
   const [form] = Form.useForm();
   const [previewImage, setPreviewImage] = useState(null);
+  const { state } = useLocation(); // Access passed staff data which will be passed from profile--> edit
+  const staffData = state?.staff || null;
+  // console.log(staffData);
 
   const validatePhone = (_, value) => {
     if (!value) return Promise.resolve();
@@ -58,40 +61,43 @@ function StaffRegistrationForm() {
 
   const onFinish = async (values) => {
     try {
-      const dob = values.dob ? dayjs(values.dob).format("YYYY-MM-DD") : "";
-      const dateOfJoining = values.dateOfJoining
-        ? dayjs(values.dateOfJoining).format("YYYY-MM-DD")
-        : "";
+      const dob = values.dob;
+      const dateOfJoining = values.dateOfJoining;
 
       const photoFile = values.photo?.[0]?.originFileObj;
 
       const formData = new FormData();
-
+      if (edit) {
+        formData.append("edit", edit);
+        formData.append("_id", staffData?._id || "");
+      }
       for (const key in values) {
         if (key === "photo") continue;
-        const value = values[key];
-        // Format dates
         if (key === "dob") formData.append("dob", dob);
         else if (key === "dateOfJoining")
           formData.append("dateOfJoining", dateOfJoining);
-        else formData.append(key, value ?? "");
+        else formData.append(key, values[key] ?? "");
       }
 
-      // Append photo
       if (photoFile) {
         formData.append("photo", photoFile);
       }
 
-      const response = await createUserApi(formData);
-      //       for (let pair of formData.entries()) {
-      //   console.log(pair[0], pair[1]);
-      // }
-      console.log(response);
-      message.success("Staff registered successfully!");
-      // form.resetFields();
+      const response = await updateOrCreateUserApi(formData);
+
+      if (response.success) {
+        toast.success(
+          response.message || (edit ? "Staff updated!" : "Staff registered!")
+        );
+        if (edit) navigate(-1);
+        form.resetFields();
+        setPreviewImage(null);
+      } else {
+        toast.error(response.message || "Operation failed");
+      }
     } catch (error) {
       console.error(error);
-      message.error("Registration failed");
+      toast.error(error.message || "Server error");
     }
   };
 
@@ -107,6 +113,37 @@ function StaffRegistrationForm() {
     }
     form.setFieldsValue({ photo: fileList });
   };
+
+  useEffect(() => {
+    if (edit && staffData) {
+      // Convert dates to dayjs objects
+      const dob = staffData.dob ? dayjs(staffData.dob) : null;
+      const dateOfJoining = staffData.dateOfJoining
+        ? dayjs(staffData.dateOfJoining)
+        : null;
+
+      form.setFieldsValue({
+        ...staffData,
+        dob,
+        dateOfJoining,
+        photo: staffData.profilePhoto
+          ? [
+              {
+                uid: "-1",
+                name: "Profile Photo",
+                status: "done",
+                url: staffData.profilePhoto,
+              },
+            ]
+          : [],
+      });
+
+      // Set image preview
+      if (staffData.profilePhoto) {
+        setPreviewImage(staffData.profilePhoto);
+      }
+    }
+  }, [edit, staffData]);
 
   return (
     <div className="pb-4">
@@ -124,6 +161,9 @@ function StaffRegistrationForm() {
           form={form}
           layout="vertical"
           onFinish={onFinish}
+          onFinishFailed={() =>
+            toast.error("Please fill all required fields correctly.")
+          }
           autoComplete="off"
         >
           <Row gutter={[0, 24]}>
@@ -147,9 +187,9 @@ function StaffRegistrationForm() {
                       getValueFromEvent={(e) =>
                         Array.isArray(e) ? e : e && e.fileList
                       }
-                      rules={[
-                        { required: true, message: "Please upload a photo" },
-                      ]}
+                      // rules={[
+                      //   { required: true, message: "Please upload a photo" },
+                      // ]}
                     >
                       <>
                         <Upload
@@ -231,52 +271,59 @@ function StaffRegistrationForm() {
                       />
                     </Form.Item>
                   </Col>
-                  <Col xs={24} md={8}>
-                    <Form.Item
-                      name="password"
-                      label="Password"
-                      rules={[
-                        { required: true, message: "Enter password" },
-                        {
-                          min: 6,
-                          message: "Password must be at least 6 characters",
-                        },
-                      ]}
-                    >
-                      <Input.Password
-                        size="large"
-                        placeholder="Password"
-                        prefix={<LockOutlined />}
-                      />
-                    </Form.Item>
-                  </Col>
-                  {/* Joining Date Field */}
-                  <Col xs={24} md={8}>
-                    <Form.Item
-                      name="dateOfJoining"
-                      label="Joining Date"
-                      rules={[
-                        { required: true, message: "Select joining date" },
-                        {
-                          validator: (_, value) =>
-                            value && value.isAfter(dayjs())
-                              ? Promise.reject("Joining date cannot be in the future")
-                              : Promise.resolve(),
-                        },
-                      ]}
-                    >
-                      <DatePicker
-                        size="large"
-                        style={{ width: "100%" }}
-                        format="DD-MM-YYYY"
-                        placeholder="Select Joining Date"
-                        suffixIcon={<CalendarOutlined />}
-                        disabledDate={(current) =>
-                          current && current > dayjs().endOf("day")
-                        }
-                      />
-                    </Form.Item>
-                  </Col>
+                  {!edit && (
+                    <>
+                      <Col xs={24} md={8}>
+                        <Form.Item
+                          name="password"
+                          label="Password"
+                          rules={[
+                            { required: true, message: "Enter password" },
+                            {
+                              min: 6,
+                              message: "Password must be at least 6 characters",
+                            },
+                          ]}
+                        >
+                          <Input.Password
+                            size="large"
+                            placeholder="Password"
+                            prefix={<LockOutlined />}
+                          />
+                        </Form.Item>
+                      </Col>
+
+                      {/* Joining Date Field */}
+                      <Col xs={24} md={8}>
+                        <Form.Item
+                          name="dateOfJoining"
+                          label="Joining Date"
+                          rules={[
+                            { required: true, message: "Select joining date" },
+                            {
+                              validator: (_, value) =>
+                                value && value.isAfter(dayjs())
+                                  ? Promise.reject(
+                                      "Joining date cannot be in the future"
+                                    )
+                                  : Promise.resolve(),
+                            },
+                          ]}
+                        >
+                          <DatePicker
+                            size="large"
+                            style={{ width: "100%" }}
+                            format="DD/MM/YYYY"
+                            placeholder="Select Joining Date"
+                            suffixIcon={<CalendarOutlined />}
+                            disabledDate={(current) =>
+                              current && current > dayjs().endOf("day")
+                            }
+                          />
+                        </Form.Item>
+                      </Col>
+                    </>
+                  )}
                 </Row>
               </Card>
             </Col>
@@ -384,7 +431,7 @@ function StaffRegistrationForm() {
                       <DatePicker
                         size="large"
                         style={{ width: "100%" }}
-                        format="DD-MM-YYYY"
+                        format="DD/MM/YYYY"
                         placeholder="Select DOB"
                         suffixIcon={<CalendarOutlined />}
                         disabledDate={(current) =>
@@ -649,7 +696,7 @@ function StaffRegistrationForm() {
             <Col span={24}>
               <Form.Item className="text-end mt-4">
                 <Button type="primary" size="large" htmlType="submit">
-                  Register Staff
+                  {edit ? "Update Profile" : "Register Staff"}
                 </Button>
               </Form.Item>
             </Col>
