@@ -1,4 +1,4 @@
-import { MdRequestQuote } from "react-icons/md";
+import { MdRequestQuote, MdSpaceDashboard } from "react-icons/md";
 import { Layout, Menu } from "antd";
 import {
   UserAddOutlined,
@@ -43,6 +43,11 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
 
   const roleMenus = {
     admin: [
+      {
+        key: "dashboard",
+        icon: <MdSpaceDashboard />,
+        label: <Link to="/dashboard">Dashboard</Link>,
+      },
       {
         key: "billing",
         icon: <MdRequestQuote />,

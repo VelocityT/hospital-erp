@@ -1,5 +1,18 @@
 import { useEffect, useState } from "react";
-import { Table, Card, Tag, Button, Input, Row, Col, Drawer, Form } from "antd";
+import {
+  Table,
+  Card,
+  Tag,
+  Button,
+  Input,
+  Row,
+  Col,
+  Drawer,
+  Form,
+  DatePicker,
+  Spin,
+  Select,
+} from "antd";
 import {
   EyeOutlined,
   EditOutlined,
@@ -23,9 +36,13 @@ import toast from "react-hot-toast";
 import DischargeModal from "../components/OPDIPD/IPDDischarge";
 import SymptomsForm from "../components/formComponents/SymptopmsForm";
 import { useSelector } from "react-redux";
+import { MdOutlineLocalHospital } from "react-icons/md";
 
 function OPDIPDList({ type }) {
   const user = useSelector((state) => state?.user);
+  const [filterMode, setFilterMode] = useState("date"); // "date" or "all"
+  const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [viewDrawer, setViewDrawer] = useState(false);
@@ -40,6 +57,7 @@ function OPDIPDList({ type }) {
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
   const [symptomsTitles, setSymptomsTitles] = useState([]);
   const [symptomsDescription, setSymptomsDescription] = useState("");
+  const [allPatients, setAllPatients] = useState([]);
 
   const handleDischargeClick = (record) => {
     if (record.status === "Admitted") {
@@ -74,19 +92,43 @@ function OPDIPDList({ type }) {
   };
 
   useEffect(() => {
-    const fetchPatients = async () => {
-      let response;
-      if (type === "ipd") {
-        response = await getIpdPatientsApi();
-      } else {
-        response = await getOpdPatientsApi();
-      }
-      const filtered = response.data.map((p, idx) => ({ ...p, key: idx }));
-      setData(filtered);
-      setFilteredData(filtered);
-    };
-    fetchPatients();
+    fetchAndStoreAllPatients();
   }, [type, location.key]);
+
+  const fetchAndStoreAllPatients = async () => {
+    setLoading(true);
+    let response;
+    if (type === "ipd") {
+      response = await getIpdPatientsApi();
+    } else {
+      response = await getOpdPatientsApi();
+    }
+
+    const all = response?.data?.map((p, i) => ({ ...p, key: i })) || [];
+    setAllPatients(all);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    filterPatientsLocally();
+  }, [filterMode, selectedDate, allPatients]);
+
+  const filterPatientsLocally = () => {
+    setLoading(true);
+
+    const filtered =
+      filterMode === "all"
+        ? allPatients
+        : allPatients.filter((p) => {
+            const dateToCompare =
+              type === "ipd" ? p.admissionDate : p.visitDateTime;
+            return dayjs(dateToCompare).isSame(selectedDate, "day");
+          });
+
+    setData(filtered);
+    setFilteredData(filtered);
+    setLoading(false);
+  };
 
   useEffect(() => {
     let filtered = data;
@@ -248,7 +290,10 @@ function OPDIPDList({ type }) {
                     ["admin", "doctor", "receptionist"].includes(user?.role) &&
                     handleDischargeClick(record)
                   }
-                  className={["admin", "doctor","receptionist"].includes(user?.role) && "cursor-pointer hover:scale-110"}
+                  className={
+                    ["admin", "doctor", "receptionist"].includes(user?.role) &&
+                    "cursor-pointer hover:scale-110"
+                  }
                 >
                   {record.status}
                 </Tag>
@@ -321,75 +366,109 @@ function OPDIPDList({ type }) {
     <>
       <Card
         title={
-          <Row gutter={[8, 20]} align="middle" justify="space-between">
+          <Row gutter={[8, 10]} align="middle" justify="space-between py-2">
             <Col>
               <span style={{ fontWeight: 600, fontSize: 18 }}>
                 {type === "ipd" ? "IPD Patient List" : "OPD Patient List"}
               </span>
             </Col>
-            <Col md={8}>
-              <Input.Search
-                allowClear
-                placeholder="Search by name or phone"
-                onSearch={setSearchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                className=" mb-4 md:mb-2"
-                value={searchText}
-              />
+            <Col>
+              <Row gutter={[8, 8]}>
+                <Col>
+                  <Select
+                    value={filterMode}
+                    onChange={(val) => setFilterMode(val)}
+                    options={[
+                      { label: "Date", value: "date" },
+                      { label: "All", value: "all" },
+                    ]}
+                    className="min-w-[70px]"
+                  />
+                </Col>
+                <Col>
+                  <DatePicker
+                    value={selectedDate}
+                    onChange={setSelectedDate}
+                    allowClear={false}
+                    format="DD/MM/YYYY"
+                    disabled={filterMode === "all"}
+                  />
+                </Col>
+                <Col>
+                  <Input.Search
+                    allowClear
+                    placeholder="Search by name or phone"
+                    onSearch={setSearchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    value={searchText}
+                  />
+                </Col>
+              </Row>
             </Col>
           </Row>
         }
         bordered={false}
       >
-        <Table
-          columns={columns}
-          dataSource={filteredData}
-          pagination={{ pageSize: 10 }}
-          scroll={{ x: 900 }}
-          responsive
-        />
-
-        <PatientDetailsPreview
-          open={viewDrawer}
-          onClose={() => setViewDrawer(false)}
-          patient={selectedPatient}
-          type={type}
-        />
-
-        <Drawer
-          title="Switch to IPD"
-          open={ipdModalOpen}
-          onClose={() => setIpdModalOpen(false)}
-          width={600}
-          destroyOnClose
-          footer={
-            <Row justify="end" gutter={8}>
-              <Col>
-                <Button onClick={() => setIpdModalOpen(false)}>Cancel</Button>
-              </Col>
-              <Col>
-                <Button type="primary" onClick={handleIpdSwitch}>
-                  Switch
-                </Button>
-              </Col>
-            </Row>
-          }
-        >
-          {/* Wrap IPDForm in Form for context */}
-          <Form form={form} layout="vertical">
-            <IPDForm form={form} bedTypes={bedTypes} beds={beds} />
-            <SymptomsForm
-              form={form}
-              selectedSymptoms={selectedSymptoms}
-              setSelectedSymptoms={setSelectedSymptoms}
-              symptomsTitles={symptomsTitles}
-              setSymptomsTitles={setSymptomsTitles}
-              symptomsDescription={symptomsDescription}
-              setSymptomsDescription={setSymptomsDescription}
+        {loading ? (
+          <div className="flex justify-center items-center min-h-[200px]">
+            <Spin size="large" />
+          </div>
+        ) : (
+          <>
+            <Table
+              columns={columns}
+              dataSource={filteredData}
+              pagination={{ pageSize: 10 }}
+              scroll={{ x: 900 }}
+              responsive
             />
-          </Form>
-        </Drawer>
+
+            <PatientDetailsPreview
+              open={viewDrawer}
+              onClose={() => setViewDrawer(false)}
+              patient={selectedPatient}
+              type={type}
+            />
+
+            <Drawer
+              title="Switch to IPD"
+              open={ipdModalOpen}
+              onClose={() => setIpdModalOpen(false)}
+              width={600}
+              destroyOnClose
+              footer={
+                <Row justify="end" gutter={8}>
+                  <Col>
+                    <Button onClick={() => setIpdModalOpen(false)}>
+                      Cancel
+                    </Button>
+                  </Col>
+                  <Col>
+                    <Button type="primary" onClick={handleIpdSwitch}>
+                      Switch
+                    </Button>
+                  </Col>
+                </Row>
+              }
+            >
+              {/* Wrap IPDForm in Form for context */}
+              <Form form={form} layout="vertical">
+                <IPDForm form={form} bedTypes={bedTypes} beds={beds} />
+                <SymptomsForm
+                  form={form}
+                  selectedSymptoms={selectedSymptoms}
+                  setSelectedSymptoms={setSelectedSymptoms}
+                  symptomsTitles={symptomsTitles}
+                  setSymptomsTitles={setSymptomsTitles}
+                  symptomsDescription={symptomsDescription}
+                  setSymptomsDescription={setSymptomsDescription}
+                />
+              </Form>
+            </Drawer>
+          </>
+        )}
       </Card>
+
       <DischargeModal
         visible={dischargeModalVisible}
         onClose={() => {

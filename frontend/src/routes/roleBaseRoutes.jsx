@@ -32,6 +32,8 @@ import MedicineList from "../pages/pharmacy/MedicineList";
 
 // Billing
 import PatientBilling from "../pages/billing/PatientBilling";
+import AdminDashboard from "../pages/admin/AdminDashboard";
+import IncomeOverview from "../pages/admin/IncomeOverview";
 
 const commonRoutes = [
   { path: "/patients", element: <PatientList /> },
@@ -46,6 +48,23 @@ const commonRoutes = [
 export const roleRoutes = {
   admin: [
     ...commonRoutes,
+    { path: "/dashboard", element: <AdminDashboard /> },
+    {
+      path: "/admin/income/ipd",
+      element: <IncomeOverview incomeSource="Ipd" />,
+    },
+    {
+      path: "/admin/income/opd",
+      element: <IncomeOverview incomeSource="Opd" />,
+    },
+    {
+      path: "/admin/income/pharmacy",
+      element: <IncomeOverview incomeSource="Pharmacy" />,
+    },
+    {
+      path: "/admin/income/Pathology",
+      element: <IncomeOverview incomeSource="Pathology" />,
+    },
 
     // Registration
     { path: "/registration", element: <PatientRegistration /> },

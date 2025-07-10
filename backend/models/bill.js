@@ -20,7 +20,7 @@ const billSchema = new mongoose.Schema(
       checkId: String,
       type: {
         type: String,
-        enum: ["Ipd", "Opd", "Pathology", "Prescription"],
+        enum: ["Ipd", "Opd", "Pathology", "Pharmacy"],
         required: true,
       },
     },

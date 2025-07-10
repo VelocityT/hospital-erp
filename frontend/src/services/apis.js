@@ -362,3 +362,21 @@ export const uploadMedicineExcelApi = async (formData) => {
     return error.response?.data || error.message;
   }
 };
+export const getDashboardStaticData = async () => {
+  try {
+    const response = await API.get("/auth/dashboard/static-data");
+    return response.data;
+  } catch (error) {
+    return error.response?.data || error.message;
+  }
+};
+export const getIncomeOverviewApi = async (params) => {
+  try {
+    const response = await API.get(
+      "/auth/income/overview",{params}
+    );
+    return response.data;
+  } catch (error) {
+    return error.response?.data || error.message;
+  }
+};
