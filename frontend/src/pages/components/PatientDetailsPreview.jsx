@@ -1,4 +1,5 @@
 import { Drawer, Descriptions } from "antd";
+import dayjs from "dayjs";
 
 function PatientDetailsPreview({ open, onClose, patient }) {
   if (!patient) return null;
@@ -10,7 +11,7 @@ function PatientDetailsPreview({ open, onClose, patient }) {
       <Descriptions column={1} bordered size="small">
         <Descriptions.Item label="Name">{patient.fullName}</Descriptions.Item>
         <Descriptions.Item label="Gender">{patient.gender}</Descriptions.Item>
-        <Descriptions.Item label="DOB">{patient.dob}</Descriptions.Item>
+        <Descriptions.Item label="DOB">{dayjs(patient.dob).format("DD/MM/YYYY")}</Descriptions.Item>
         <Descriptions.Item label="Age">
           {patient.age?.years || 0}y {patient.age?.months || 0}m{" "}
           {patient.age?.days || 0}d
@@ -24,6 +25,25 @@ function PatientDetailsPreview({ open, onClose, patient }) {
             {patient?.ipdDetails?.status || "-"}
           </Descriptions.Item>
         )}
+        {patient?.ipdDetails?.status === "Discharged" && (
+          <>
+            <Descriptions.Item label="Discharge Reason">
+              {patient.ipdDetails.dischargeSummary.dischargeReason || "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Discharge Condition">
+              {patient.ipdDetails.dischargeSummary.dischargeCondition || "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Discharge Date">
+              {dayjs(patient.ipdDetails.dischargeSummary.dischargeDate).format("DD/MM/YYYY") || "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Discharged By">
+              {patient.ipdDetails.dischargeSummary.dischargedBy?.fullName
+                ? `${patient.ipdDetails.dischargeSummary.dischargedBy.fullName} (${patient.ipdDetails.dischargeSummary.dischargedBy.role})`
+                : "-"}
+            </Descriptions.Item>
+          </>
+        )}
+
         <Descriptions.Item label="Phone">
           {patient.contact?.phone}
         </Descriptions.Item>
@@ -39,43 +59,60 @@ function PatientDetailsPreview({ open, onClose, patient }) {
         <Descriptions.Item label="City">
           {patient.address?.city}
         </Descriptions.Item>
-        <Descriptions.Item label="Symptoms">
-          {(patient.symptoms?.symptomNames || []).join(", ")}
-        </Descriptions.Item>
-        <Descriptions.Item label="Symptoms Titles">
-          {(patient.symptoms?.symptomTitles || []).join(", ")}
-        </Descriptions.Item>
-        <Descriptions.Item label="Symptoms Description">
-          {patient.symptoms?.description}
-        </Descriptions.Item>
         {patient?.ipdDetails?.ipdNumber && (
           <>
             <Descriptions.Item label="IPD Number">
-              {patient.ipdDetails?.ipdNumber}
+              {patient.ipdDetails.ipdNumber}
             </Descriptions.Item>
+
             <Descriptions.Item label="Admission Date & Time">
-              {patient.ipdDetails?.admissionDate}
+              {dayjs(patient.ipdDetails.admissionDate).format("DD/MM/YYYY HH:mm")}
             </Descriptions.Item>
+
             <Descriptions.Item label="Height">
-              {patient.ipdDetails?.height}
+              {patient.ipdDetails.height !== "NaN"
+                ? patient.ipdDetails.height
+                : "-"}
             </Descriptions.Item>
+
             <Descriptions.Item label="Weight">
-              {patient.ipdDetails?.weight}
+              {patient.ipdDetails.weight !== "NaN"
+                ? patient.ipdDetails.weight
+                : "-"}
             </Descriptions.Item>
+
             <Descriptions.Item label="Blood Pressure">
-              {patient.ipdDetails?.bloodPressure}
+              {patient.ipdDetails.bloodPressure !== "undefined"
+                ? patient.ipdDetails.bloodPressure
+                : "-"}
             </Descriptions.Item>
             <Descriptions.Item label="Ward">
-              {patient.ipdDetails?.ward}
+              {patient.ipdDetails.ward
+                ? `${patient.ipdDetails.ward.name} (Floor: ${patient.ipdDetails.ward.floor})`
+                : "-"}
             </Descriptions.Item>
-            <Descriptions.Item label="Bed">
-              {patient.ipdDetails?.bed}
+            <Descriptions.Item label="Bed Number">
+              {patient.ipdDetails.bed?.bedNumber || "-"}
             </Descriptions.Item>
             <Descriptions.Item label="Doctor">
-              {patient.ipdDetails?.attendingDoctor?.fullName}
+              {patient.ipdDetails.attendingDoctor?.fullName || "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Doctor Charge">
+              ₹{patient.ipdDetails.attendingDoctor?.ipdCharge || 0}
+            </Descriptions.Item>
+            <Descriptions.Item label="Symptoms">
+              {(patient.ipdDetails.symptoms?.symptomNames || []).join(", ") ||
+                "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Symptoms Titles">
+              {(patient.ipdDetails.symptoms?.symptomTitles || []).join(", ") ||
+                "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Symptoms Description">
+              {patient.ipdDetails.symptoms?.description || "-"}
             </Descriptions.Item>
             <Descriptions.Item label="IPD Notes">
-              {patient.ipdDetails?.notes}
+              {patient.ipdDetails.notes?.trim() || "-"}
             </Descriptions.Item>
           </>
         )}
@@ -85,13 +122,22 @@ function PatientDetailsPreview({ open, onClose, patient }) {
               {patient.opdDetails?.opdNumber}
             </Descriptions.Item>
             <Descriptions.Item label="Visit Date & Time">
-              {patient.opdDetails?.visitDateTime}
+              {dayjs(patient.opdDetails?.visitDateTime).format("DD/MM/YYYY HH:mm")}
             </Descriptions.Item>
             <Descriptions.Item label="Doctor">
               {patient.opdDetails?.doctor?.fullName}
             </Descriptions.Item>
             <Descriptions.Item label="Consultation Fees">
-              {patient.opdDetails?.consultationFees}
+              {patient.opdDetails?.doctor?.opdCharge}
+            </Descriptions.Item>
+            <Descriptions.Item label="Symptoms">
+              {(patient?.opdDetails?.symptoms?.symptomNames || []).join(", ")}
+            </Descriptions.Item>
+            <Descriptions.Item label="Symptoms Titles">
+              {(patient?.opdDetails?.symptoms?.symptomTitles || []).join(", ")}
+            </Descriptions.Item>
+            <Descriptions.Item label="Symptoms Description">
+              {patient?.opdDetails?.symptoms?.description}
             </Descriptions.Item>
             <Descriptions.Item label="OPD Notes">
               {patient.opdDetails?.notes}

@@ -1,26 +1,50 @@
 import express from "express";
-const router = express.Router();
 import {
   createPatient,
   getAllPatients,
   getPatientDetails,
-  editPatientRegistrationDetails,
+  updatePatientRegistration,
   switchPatientToIpd,
-  getPatientIpdOpdDetails
+  getPatientIpdOpdDetails,
+  getPatientFullDetails,
+  addOpdOrIpd,
+  searchPatient,
 } from "../controllers/patient.controller.js";
 import upload from "../middlewares/multer.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
+import { roleBasedAccess } from "../middlewares/roleBaseAccess.middleare.js";
 
-router.post("/", upload.array("medicalDocuments", 5), createPatient);
+const router = express.Router();
+router.use(authenticateToken);
 
-router.get("/", getAllPatients);
+router.get("/all-patients", getAllPatients);
+router.get("/patient-details/:id", getPatientDetails);
+router.get("/ipd-opd-details/:id", getPatientIpdOpdDetails);
+router.get("/patient-full-details/:patientId", getPatientFullDetails);
+router.get("/patient-search", searchPatient);
 
-router.get("/:id", getPatientDetails);
-router.get("/ipd-opd/:id",getPatientIpdOpdDetails)
 router.put(
-  "/:id",
+  "/patient-registration/edit/:id",
+  roleBasedAccess(["admin", "doctor", "receptionist"]),
   upload.array("medicalDocuments", 5),
-  editPatientRegistrationDetails
+  updatePatientRegistration
 );
-router.post("/:id/switch-to-ipd", switchPatientToIpd);
+router.post(
+  "/patient-registration",
+  roleBasedAccess(["admin", "doctor", "receptionist"]),
+  upload.array("medicalDocuments", 5),
+  createPatient
+);
+router.post(
+  "/add-opd-ipd",
+  roleBasedAccess(["admin", "doctor", "receptionist"]),
+  addOpdOrIpd
+);
+
+router.post(
+  "/:id/patient-switch-to-ipd",
+  roleBasedAccess(["admin", "doctor"]),
+  switchPatientToIpd
+);
 
 export default router;

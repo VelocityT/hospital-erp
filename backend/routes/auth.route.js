@@ -1,9 +1,14 @@
 import express from 'express';
-import { loginUser,logoutUser } from '../controllers/auth.controller.js';
+import { getDashboardStatsData, getIncomeOverview, loginUser,logoutUser } from '../controllers/auth.controller.js';
+import { authenticateToken } from '../middlewares/auth.middleware.js';
 const router = express.Router();
 
 router.post("/login",loginUser)
-router.post("/logout",logoutUser)
+router.get("/logout",logoutUser)
+
+router.use(authenticateToken)
+router.get("/dashboard/static-data",getDashboardStatsData)
+router.get("/income/overview",getIncomeOverview)
 
 
 

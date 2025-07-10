@@ -2,36 +2,42 @@ import { useEffect, useState } from "react";
 import {
   Table,
   Card,
-  Tag,
   Button,
   Input,
   Row,
   Col,
-  Drawer,
-  Select,
   message,
+  DatePicker,
+  Spin,
+  Select,
 } from "antd";
 import dayjs from "dayjs";
 import { Link, useNavigate } from "react-router-dom";
 import { getAllPatientsApi, getPatientDetailsApi } from "../../services/apis";
 import PatientDetailsPreview from "../components/PatientDetailsPreview";
-
-const { Option } = Select;
+import { useSelector } from "react-redux";
 
 const columnsBase = [
-{
-  title: "Admit Date & Time",
-  key: "admitDate",
-  render: (_, record) => record.registrationDate || "-",
-  sorter: (a, b) =>
-    new Date(a.registrationDate) - new Date(b.registrationDate),
-},
+  {
+    title: "Registration Date",
+    key: "registrationDate",
+    render: (_, record) =>
+      dayjs(record.registrationDate).format("DD/MM/YYYY HH:mm") || "-",
+    sorter: (a, b) =>
+      new Date(a.registrationDate) - new Date(b.registrationDate),
+  },
   {
     title: "Patient ID",
     key: "patientId",
     render: (_, record) => {
       const id = record.patientId || "-";
-      return id ? <Link to={`/patient/${id}`}>{id}</Link> : "-";
+      return id ? (
+        <Link to={`/patient/profile/${id}`} className="text-blue-600">
+          {id}
+        </Link>
+      ) : (
+        "-"
+      );
     },
   },
   {
@@ -79,29 +85,56 @@ const columnsBase = [
 
 function PatientList() {
   const [data, setData] = useState([]);
+  const [allPatients, setAllPatients] = useState([]);
+  const [filterMode, setFilterMode] = useState("date"); // "date" | "all"
+  const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [loading, setLoading] = useState(true);
   const [viewDrawer, setViewDrawer] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [searchText, setSearchText] = useState("");
   const navigate = useNavigate();
+  const user = useSelector((state) => state?.user);
 
   useEffect(() => {
-    const getAllPatients = async () => {
-      const response = await getAllPatientsApi();
-      console.log(response);
-      setData(
-        response?.data?.map((p, idx) => ({
-          ...p,
-          key: idx,
-          dob: p.dob ? dayjs(p.dob).format("DD-MM-YYYY") : "N/A",
-          admitDateRaw: p.admitDate || null,
-          admitDate: p.admitDate
-            ? dayjs(p.admitDate).format("DD-MM-YYYY HH:mm")
-            : "N/A",
-        }))
-      );
-    };
-    getAllPatients();
+    fetchAndStoreAllPatients();
   }, []);
+
+  const fetchAndStoreAllPatients = async () => {
+    setLoading(true);
+    const response = await getAllPatientsApi();
+    const all = response?.data || [];
+
+    const formatted = all.map((p, idx) => ({
+      ...p,
+      key: idx,
+      dob: p.dob ? dayjs(p.dob).format("DD/MM/YYYY") : "N/A",
+      admitDateRaw: p.admitDate || null,
+      admitDate: p.admitDate
+        ? dayjs(p.admitDate).format("DD/MM/YYYY HH:mm")
+        : "N/A",
+    }));
+
+    setAllPatients(formatted);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    filterPatientsLocally();
+  }, [filterMode, selectedDate, allPatients]);
+
+  const filterPatientsLocally = () => {
+    setLoading(true);
+
+    const filtered =
+      filterMode === "all"
+        ? allPatients
+        : allPatients.filter((p) =>
+            dayjs(p.registrationDate).isSame(selectedDate, "day")
+          );
+
+    setData(filtered);
+    setLoading(false);
+  };
 
   const handleView = async (record) => {
     try {
@@ -139,15 +172,17 @@ function PatientList() {
               View
             </Button>
           </Col>
-          <Col>
-            <Button
-              size="small"
-              type="primary"
-              onClick={() => handleEdit(record)}
-            >
-              Edit
-            </Button>
-          </Col>
+          {["admin", "doctor", "receptionist"].includes(user?.role) && (
+            <Col>
+              <Button
+                size="small"
+                type="primary"
+                onClick={() => handleEdit(record)}
+              >
+                Edit
+              </Button>
+            </Col>
+          )}
         </Row>
       ),
     },
@@ -156,14 +191,34 @@ function PatientList() {
   return (
     <Card
       title={
-        <Row gutter={[8, 8]} className="mb-2 md:mb-0">
+        <Row gutter={[8, 10]} align="middle" justify="space-between py-2">
           <Col flex="auto">
             <span style={{ fontWeight: 600, fontSize: 18 }}>Patient List</span>
           </Col>
           <Col>
+            <Select
+              value={filterMode}
+              onChange={setFilterMode}
+              options={[
+                { label: "Date", value: "date" },
+                { label: "All", value: "all" },
+              ]}
+               className="min-w-[70px]"
+            />
+          </Col>
+          <Col>
+            <DatePicker
+              value={selectedDate}
+              onChange={(date) => setSelectedDate(date)}
+              allowClear={false}
+              format="DD/MM/YYYY"
+              disabled={filterMode === "all"}
+            />
+          </Col>
+          <Col>
             <Input.Search
               allowClear
-              placeholder="Search by name or mobile"
+              placeholder="Search by name or phone"
               onSearch={setSearchText}
               onChange={(e) => setSearchText(e.target.value)}
               value={searchText}
@@ -173,13 +228,19 @@ function PatientList() {
       }
       bordered={false}
     >
-      <Table
-        columns={columns}
-        dataSource={filteredData}
-        pagination={{ pageSize: 10 }}
-        scroll={{ x: 900 }}
-        responsive
-      />
+      {loading ? (
+        <div className="flex justify-center items-center min-h-[200px]">
+          <Spin size="large" />
+        </div>
+      ) : (
+        <Table
+          columns={columns}
+          dataSource={filteredData}
+          pagination={{ pageSize: 10 }}
+          scroll={{ x: 900 }}
+          responsive
+        />
+      )}
 
       <PatientDetailsPreview
         open={viewDrawer}

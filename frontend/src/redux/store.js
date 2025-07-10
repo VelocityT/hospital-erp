@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import userReducer from "./userSlice";
+import themeReducer from "./themeSlice";
 
 const EXPIRY_DURATION = 24 * 60 * 60 * 1000;
 
@@ -39,6 +40,7 @@ const saveState = (state) => {
 export const store = configureStore({
   reducer: {
     user: userReducer,
+    theme:themeReducer
   },
   preloadedState: loadState(),
 });

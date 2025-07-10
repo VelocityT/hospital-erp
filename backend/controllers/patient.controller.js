@@ -1,18 +1,13 @@
+import Bed from "../models/bed.js";
 import Ipd from "../models/ipd.js";
 import Opd from "../models/opd.js";
 import Patient from "../models/patient.js";
 import dayjs from "dayjs";
-
-const extractArray = (body, key) => {
-  const value = body[key];
-  // console.log(body[key]);
-  if (!value) return [];
-  return Array.isArray(value) ? value : [value];
-};
+import { extractArray } from "../utils/helper.js";
 
 export const createPatient = async (req, res) => {
   try {
-    console.log(req.body.OPD);
+    // console.log(req.body);
     // return res.status(201).json({
     //   success: true,
     //   message: "Patient created successfully",
@@ -39,11 +34,6 @@ export const createPatient = async (req, res) => {
         city: req.body.address?.city,
         pincode: Number(req.body.address?.pincode || 0),
       },
-      symptoms: {
-        symptomNames: extractArray(req.body.symptoms, "symptomNames"),
-        symptomTitles: extractArray(req.body.symptoms, "symptomTitles"),
-        description: req.body.symptoms?.description || "",
-      },
       // medicalDocuments:
       //   req.files?.map((file) => ({
       //     name: file.originalname,
@@ -62,6 +52,11 @@ export const createPatient = async (req, res) => {
         doctor: req.body.OPD?.doctor || null,
         notes: req.body.OPD?.opdNotes || "",
         consultationFees: Number(req.body.OPD?.consultationFees || 0),
+        symptoms: {
+          symptomNames: extractArray(req.body.symptoms, "symptomNames"),
+          symptomTitles: extractArray(req.body.symptoms, "symptomTitles"),
+          description: req.body.symptoms?.description || "",
+        },
       };
       await Opd.create(OPDData);
     } else if (req.body.patientType === "IPD") {
@@ -76,8 +71,18 @@ export const createPatient = async (req, res) => {
         height: Number(req.body.IPD?.height || 0),
         weight: Number(req.body.IPD?.weight || 0),
         bloodPressure: req.body.IPD?.bloodPressure || "",
+        symptoms: {
+          symptomNames: extractArray(req.body.symptoms, "symptomNames"),
+          symptomTitles: extractArray(req.body.symptoms, "symptomTitles"),
+          description: req.body.symptoms?.description || "",
+        },
       };
       await Ipd.create(IPDData);
+
+      await Bed.findByIdAndUpdate(req.body.IPD?.bed, {
+        status: "Occupied",
+        patient: patient._id,
+      });
     }
 
     return res.status(201).json({
@@ -105,10 +110,6 @@ export const getAllPatients = async (req, res) => {
 
     const formattedPatients = patients.map((patient) => ({
       ...patient.toObject(),
-      dob: dayjs(patient.dob).format("DD MM YYYY"),
-      registrationDate: dayjs(patient.registrationDate).format(
-        "DD MM YYYY HH:mm"
-      ),
     }));
 
     // console.log(patients)
@@ -130,12 +131,13 @@ export const getAllPatients = async (req, res) => {
 export const getPatientIpdOpdDetails = async (req, res) => {
   try {
     const { id } = req.params;
-    const { ipdNumber, opdNumber } = req.query;
+    const { isIpdPatient, isOpdPatient, detailPage } = req.query;
+    // console.log(detailPage)
 
-    if (!ipdNumber && !opdNumber) {
+    if (!isIpdPatient && !isOpdPatient) {
       return res.status(400).json({
         success: false,
-        message: "Either ipdNumber or opdNumber must be provided",
+        message: "Either ipdPatient or opdPatient must be provided",
       });
     }
 
@@ -143,13 +145,18 @@ export const getPatientIpdOpdDetails = async (req, res) => {
     let details = null;
     let detailsKey = null;
 
-    if (ipdNumber) {
-      const ipd = await Ipd.findOne({ ipdNumber, _id: id })
-        .populate("attendingDoctor", "fullName")
+    if (isIpdPatient === "true") {
+      // console.log("Fetching IPD details for patient ID:", id);
+      const ipd = await Ipd.findOne({ _id: id })
+        .populate("attendingDoctor", "fullName ipdCharge")
         .populate(
           "patient",
-          "fullName dob address symptoms gender age registrationDate contact.phone bloodGroup patientId"
-        );
+          "fullName dob address gender age registrationDate contact.phone bloodGroup patientId dischargeSummary"
+        )
+        .populate("ward", "name floor")
+        .populate("bed", "bedNumber charge")
+        .populate("dischargeSummary.dischargedBy", "fullName role")
+        .populate(detailPage ? "payment.bill" : "");
 
       if (!ipd) {
         return res.status(404).json({
@@ -160,30 +167,42 @@ export const getPatientIpdOpdDetails = async (req, res) => {
 
       // Extract clean objects
       const ipdObj = ipd.toObject();
-      const { patient: ipdPatient, ...restIpd } = ipdObj;
+      const { patient: ipdPatient, dischargeSummary, ...restIpd } = ipdObj;
 
       patient = {
         ...ipdPatient,
         registrationDate: dayjs(ipdPatient.registrationDate).format(
-          "DD-MM-YYYY HH:mm"
+          "DD/MM/YYYY HH:mm"
         ),
-        dob: dayjs(ipdPatient.dob).format("DD-MM-YYYY"),
+        dob: dayjs(ipdPatient.dob),
       };
+
+      let formattedDischargeSummary = {};
+      if (dischargeSummary?.dischargeDate) {
+        formattedDischargeSummary = {
+          ...dischargeSummary,
+          dischargeDate: dayjs(dischargeSummary.dischargeDate).format(
+            "DD/MM/YYYY HH:mm"
+          ),
+        };
+      }
 
       detailsKey = "ipdDetails";
       details = {
         ...restIpd,
-        admissionDate: dayjs(restIpd.admissionDate).format("DD-MM-YYYY HH:mm"),
+        admissionDate: dayjs(restIpd.admissionDate),
+        dischargeSummary: formattedDischargeSummary,
       };
     }
 
-    if (opdNumber) {
-      const opd = await Opd.findOne({ opdNumber, _id: id })
-        .populate("doctor", "fullName")
+    if (isOpdPatient === "true") {
+      const opd = await Opd.findOne({ _id: id })
+        .populate("doctor", "fullName opdCharge")
         .populate(
           "patient",
-          "fullName dob address symptoms gender age registrationDate contact.phone bloodGroup patientId"
-        );
+          "fullName dob address gender age registrationDate contact.phone bloodGroup patientId"
+        )
+        .populate(detailPage ? "payment.bill" : "");
 
       if (!opd) {
         return res.status(404).json({
@@ -198,15 +217,15 @@ export const getPatientIpdOpdDetails = async (req, res) => {
       patient = {
         ...opdPatient,
         registrationDate: dayjs(opdPatient.registrationDate).format(
-          "DD-MM-YYYY HH:mm"
+          "DD/MM/YYYY HH:mm"
         ),
-        dob: dayjs(opdPatient.dob).format("DD-MM-YYYY"),
+        dob: dayjs(opdPatient.dob),
       };
 
       detailsKey = "opdDetails";
       details = {
         ...restOpd,
-        visitDateTime: dayjs(restOpd.visitDateTime).format("DD-MM-YYYY HH:mm"),
+        visitDateTime: dayjs(restOpd.visitDateTime),
       };
     }
 
@@ -241,30 +260,30 @@ export const getPatientDetails = async (req, res) => {
     }
 
     const patientObj = patient.toObject();
-    patientObj.dob = dayjs(patientObj.dob).format("DD-MM-YYYY HH:mm");
+    patientObj.dob = dayjs(patientObj.dob);
 
     // Attach OPD or IPD details if requested
     if (patient.patientType === "IPD") {
       const ipdDoc = await Ipd.findOne({ patient: patient._id })
-        .populate("attendingDoctor", "fullName")
+        .populate("attendingDoctor", "fullName ipdCharge")
         .select("-__v");
 
       if (ipdDoc) {
         const ipdDetails = ipdDoc.toObject();
         ipdDetails.admissionDate = dayjs(ipdDetails.admissionDate).format(
-          "DD-MM-YYYY HH:mm"
+          "DD/MM/YYYY HH:mm"
         );
         patientObj.ipdDetails = ipdDetails;
       }
     } else if (patient.patientType === "OPD") {
       const opdDoc = await Opd.findOne({ patient: patient._id })
-        .populate("doctor", "fullName phone")
+        .populate("doctor", "fullName phone opdCharge")
         .select("-__v");
 
       if (opdDoc) {
         const opdDetails = opdDoc.toObject();
         opdDetails.visitDateTime = dayjs(opdDetails.visitDateTime).format(
-          "DD-MM-YYYY HH:mm"
+          "DD/MM/YYYY HH:mm"
         );
         patientObj.opdDetails = opdDetails;
       }
@@ -285,10 +304,10 @@ export const getPatientDetails = async (req, res) => {
   }
 };
 
-export const editPatientRegistrationDetails = async (req, res) => {
+export const updatePatientRegistration = async (req, res) => {
   try {
     const id = req.params.id;
-    console.log(req.body);
+    // console.log(req.body);
     // Prepare patient update data
     const patientData = {
       fullName: req.body.fullName,
@@ -311,11 +330,6 @@ export const editPatientRegistrationDetails = async (req, res) => {
         city: req.body.address?.city,
         pincode: Number(req.body.address?.pincode || 0),
       },
-      symptoms: {
-        symptomNames: extractArray(req.body.symptoms, "symptomNames"),
-        symptomTitles: extractArray(req.body.symptoms, "symptomTitles"),
-        description: req.body.symptoms?.description || "",
-      },
       // medicalDocuments: ... // handle if needed
     };
 
@@ -329,43 +343,6 @@ export const editPatientRegistrationDetails = async (req, res) => {
         success: false,
         message: "Patient not found",
       });
-    }
-
-    // Update or create OPD/IPD details as per patientType
-    if (req.body.patientType === "OPD") {
-      const opdUpdate = {
-        opdNumber: req.body.OPD?.opdNumber || "N/A",
-        visitDateTime: req.body.OPD?.visitDateTime || null,
-        doctor: req.body.OPD?.doctor || null,
-        notes: req.body.OPD?.notes || "",
-        consultationFees: Number(req.body.OPD?.consultationFees || 0),
-      };
-      await Opd.findOneAndUpdate(
-        { patient: id },
-        { ...opdUpdate, patient: id },
-        { upsert: true, new: true }
-      );
-      // Optionally, remove IPD if switching from IPD to OPD
-      await Ipd.deleteOne({ patient: id });
-    } else if (req.body.patientType === "IPD") {
-      const ipdUpdate = {
-        ipdNumber: req.body.IPD?.ipdNumber || "N/A",
-        admissionDateTime: req.body.IPD?.admissionDateTime || null,
-        attendingDoctor: req.body.IPD?.doctor || null,
-        ward: req.body.IPD?.wardType || "",
-        bed: req.body.IPD?.bed || "",
-        notes: req.body.IPD?.notes || "",
-        height: Number(req.body.IPD?.height || 0),
-        weight: Number(req.body.IPD?.weight || 0),
-        bloodPressure: req.body.IPD?.bloodPressure || "",
-        patient: id,
-      };
-      await Ipd.findOneAndUpdate({ patient: id }, ipdUpdate, {
-        upsert: true,
-        new: true,
-      });
-      // Optionally, remove OPD if switching from OPD to IPD
-      await Opd.deleteOne({ patient: id });
     }
 
     return res.status(200).json({
@@ -387,11 +364,21 @@ export const switchPatientToIpd = async (req, res) => {
   try {
     const patientId = req.params.id;
     const { doctor, ...ipdInfo } = req.body;
-
+    // console.log(req.body);
     const existingIpd = await Ipd.findOne({
       patient: patientId,
       status: { $ne: "Discharged" },
     });
+
+    // bed assing
+    await Bed.findByIdAndUpdate(
+      ipdInfo.bed,
+      {
+        patient: patientId,
+        status: "Occupied",
+      },
+      { new: true }
+    );
 
     if (existingIpd) {
       return res.status(400).json({
@@ -418,6 +405,137 @@ export const switchPatientToIpd = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to switch patient",
+      error: error.message,
+    });
+  }
+};
+export const getPatientFullDetails = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    // console.log("Fetching full details for patient:", patientId);
+
+    const patient = await Patient.findOne({ patientId }).lean();
+
+    if (!patient) {
+      return res.status(404).json({
+        success: false,
+        message: "Patient not found",
+      });
+    }
+
+    const patient_id = patient._id;
+
+    const ipds = await Ipd.find({ patient: patient_id })
+      .populate("bed", "bedNumber charge")
+      .populate("ward", "name floor type")
+      .populate("attendingDoctor", "fullName role ipdCharge")
+      .populate("dischargeSummary.dischargedBy", "fullName role")
+      .populate("payment.bill")
+      .sort({ admissionDate: -1 })
+      .lean();
+
+    const opds = await Opd.find({ patient: patient_id })
+      .populate("doctor", "fullName role opdCharge")
+      .populate("payment.bill")
+      .sort({ visitDateTime: -1 })
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      message: "Patient full details fetched successfully",
+      data: {
+        patient,
+        ipds,
+        opds,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching patient full details:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch patient full details",
+      error: error.message,
+    });
+  }
+};
+
+export const addOpdOrIpd = async (req, res) => {
+  try {
+    const { type, ...payload } = req.body;
+
+    const checkPatient = await Patient.findById(payload?.patient);
+
+    if (!checkPatient) {
+      return res.status(404).json({
+        success: false,
+        message: "Patient not found",
+      });
+    }
+
+    if (type === "ipd" && payload.ipdNumber) {
+      await Ipd.create(payload);
+      await Bed.updateOne();
+      await Bed.updateOne(
+        { _id: payload.bed },
+        {
+          $set: {
+            status: "Occupied",
+            patient: payload.patient,
+          },
+        }
+      );
+    } else if (type === "opd" && payload.opdNumber) {
+      await Opd.create(payload);
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: "Something missing",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message:
+        type === "ipd" ? "IPD Added Successfully" : "OPD Added Successfully",
+    });
+  } catch (error) {
+    console.error("Error in addOpdOrIpd:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to add OPD/IPD record",
+      error: error.message,
+    });
+  }
+};
+export const searchPatient = async (req, res) => {
+  try {
+    const q = req.query.q?.trim();
+
+    if (!q || q.length < 4) {
+      return res.status(400).json({
+        success: false,
+        message: "Query must be at least 4 characters.",
+      });
+    }
+
+    const regex = new RegExp(q, "i");
+
+    const patients = await Patient.find({
+      $or: [{ "contact.phone": regex }, { patientId: regex }],
+    })
+      .select("fullName patientId contact.phone")
+      .limit(10);
+
+    return res.status(200).json({
+      success: true,
+      message: "Patients Found",
+      patients,
+    });
+  } catch (error) {
+    console.error("Error in searchPatient:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch patients",
       error: error.message,
     });
   }

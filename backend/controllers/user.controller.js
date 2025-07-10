@@ -1,35 +1,67 @@
+import dayjs from "dayjs";
 import User from "../models/user.js";
 import { hashPassword } from "../utils/helper.js";
 
-export const registerUser = async (req, res) => {
+export const registerOrUpdateUser = async (req, res) => {
   try {
-    // console.log(req.file)
     const photo = req.file;
     const userData = req.body;
 
-    // console.log(userData.password)
-    // const password = await hashPassword(req.body.password);
-    // console.log(password);
+    if (userData.edit === "true" && userData?._id) {
+      const { _id, edit, password, ...rest } = userData;
 
-    // return res.status(200).json({
-    //   success: true,
-    //   message: "User data received",
-    //   // data: newUser,
-    // });
+      const updatedUser = await User.findByIdAndUpdate(
+        _id,
+        { ...rest },
+        { new: true }
+      );
 
+      if (!updatedUser) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found for update",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "User updated successfully",
+        data: updatedUser,
+      });
+    }
+
+    // If it's not an update, it's a new registration
     const newUser = await User.create({
       ...userData,
-      password: await hashPassword(req.body.password),
+      password: await hashPassword(userData.password),
+      ...(photo && { profilePhoto: `/uploads/${photo.filename}` }),
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: "User data received",
+      message: "User registered successfully",
       data: newUser,
     });
   } catch (error) {
-    console.error("Error in registerUser:", error);
-    res.status(500).json({
+    if (error.code === 11000) {
+      const duplicateField = Object.keys(error.keyPattern)[0];
+      const fieldLabels = {
+        email: "Email",
+        phone: "Phone Number",
+        panNumber: "PAN Number",
+        aadharNumber: "Aadhar Number",
+      };
+
+      return res.status(400).json({
+        success: false,
+        message: `${
+          fieldLabels[duplicateField] || duplicateField
+        } already exists`,
+      });
+    }
+
+    console.error("Error in registerOrUpdateUser:", error);
+    return res.status(500).json({
       success: false,
       message: "Server error",
     });
@@ -38,15 +70,18 @@ export const registerUser = async (req, res) => {
 
 export const getUsers = async (req, res) => {
   try {
-    console.log(req.query);
     const userType = req.query.userType;
-    const response = await User.find({ role: userType }).select("-password");
+    const users = await User.find({ role: userType })
+      .select("-password")
+      .lean();
+    // const enrichedUsers = users.map((user) => user);
+
     // console.log(response)
 
     return res.status(201).json({
       success: true,
       message: "Users fetched successfully",
-      data: response,
+      data: users,
     });
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -59,7 +94,9 @@ export const getUsers = async (req, res) => {
 };
 export const getAllStaff = async (req, res) => {
   try {
-    const response = await User.find().select("fullName role staffId gender department");
+    const response = await User.find().select(
+      "fullName role staffId gender department"
+    );
     // console.log(response)
 
     return res.status(201).json({
@@ -73,6 +110,39 @@ export const getAllStaff = async (req, res) => {
       success: false,
       message: "Failed to fetch users",
       error: error.message,
+    });
+  }
+};
+export const getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || id.length !== 24) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    const user = await User.findById(id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User data fetched successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error("Error fetching user by ID:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching user",
     });
   }
 };
