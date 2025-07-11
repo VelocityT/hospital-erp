@@ -1,32 +1,32 @@
 import axios from "axios";
 
 const API = axios.create({
-  // baseURL: process.env.REACT_APP_API_URL || "http://localhost:3001/api",
-  baseURL: "https://hospital-erp-9w6z.onrender.com/api",
-
+  baseURL:
+    process.env.REACT_APP_API_URL ||
+    "https://hospital-erp-9w6z.onrender.com/api",
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
 });
 
-API.interceptors.request.use(
-  (config) => {
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+// Request interceptor for auth tokens
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+  return config;
+});
 
+// Response interceptor
 API.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Example: Redirect on auth failure
-      // window.location.href = "/login";
+      window.location.href = `/login?redirect=${encodeURIComponent(
+        window.location.pathname
+      )}`;
     }
-    return Promise.reject(error);
+    return Promise.reject(error?.response?.data || error);
   }
 );
 
