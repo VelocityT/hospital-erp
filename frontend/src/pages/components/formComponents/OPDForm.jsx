@@ -3,7 +3,6 @@ import { Card, Row, Col, Form, Input, Select, DatePicker } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
 import { getDoctorsApi } from "../../../services/apis";
-import { generateUniqueNumber } from "../../../utils/helper";
 
 const OPDForm = ({ form }) => {
   const [doctors, setDoctors] = useState([]);
@@ -87,7 +86,7 @@ const OPDForm = ({ form }) => {
             <DatePicker
               size="large"
               style={{ width: "100%" }}
-              format="YYYY-MM-DD"
+              format="DD/MM/YYYY"
               disabled
               value={form.getFieldValue("visitDateTime") || dayjs()}
             />
@@ -96,7 +95,7 @@ const OPDForm = ({ form }) => {
         <Col xs={24} md={8}>
           <Form.Item
             label="Consulting Doctor"
-            name="opdDoctor"
+            name="doctor"
             rules={[{ required: true, message: "Please select doctor" }]}
           >
             <Select

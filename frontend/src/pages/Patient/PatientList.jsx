@@ -2,36 +2,38 @@ import { useEffect, useState } from "react";
 import {
   Table,
   Card,
-  Tag,
   Button,
   Input,
   Row,
   Col,
-  Drawer,
-  Select,
   message,
 } from "antd";
 import dayjs from "dayjs";
 import { Link, useNavigate } from "react-router-dom";
 import { getAllPatientsApi, getPatientDetailsApi } from "../../services/apis";
 import PatientDetailsPreview from "../components/PatientDetailsPreview";
-
-const { Option } = Select;
+import { useSelector } from "react-redux";
 
 const columnsBase = [
-{
-  title: "Admit Date & Time",
-  key: "admitDate",
-  render: (_, record) => record.registrationDate || "-",
-  sorter: (a, b) =>
-    new Date(a.registrationDate) - new Date(b.registrationDate),
-},
+  {
+    title: "Registration Date",
+    key: "admitDate",
+    render: (_, record) => dayjs(record.registrationDate).format("DD/MM/YYYY HH:mm") || "-",
+    sorter: (a, b) =>
+      new Date(a.registrationDate) - new Date(b.registrationDate),
+  },
   {
     title: "Patient ID",
     key: "patientId",
     render: (_, record) => {
       const id = record.patientId || "-";
-      return id ? <Link to={`/patient/${id}`} className="text-blue-600">{id}</Link> : "-";
+      return id ? (
+        <Link to={`/patient/profile/${id}`} className="text-blue-600">
+          {id}
+        </Link>
+      ) : (
+        "-"
+      );
     },
   },
   {
@@ -83,6 +85,7 @@ function PatientList() {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [searchText, setSearchText] = useState("");
   const navigate = useNavigate();
+  const user = useSelector(state=>state?.user)
 
   useEffect(() => {
     const getAllPatients = async () => {
@@ -92,10 +95,10 @@ function PatientList() {
         response?.data?.map((p, idx) => ({
           ...p,
           key: idx,
-          dob: p.dob ? dayjs(p.dob).format("DD-MM-YYYY") : "N/A",
+          dob: p.dob ? dayjs(p.dob).format("DD/MM/YYYY") : "N/A",
           admitDateRaw: p.admitDate || null,
           admitDate: p.admitDate
-            ? dayjs(p.admitDate).format("DD-MM-YYYY HH:mm")
+            ? dayjs(p.admitDate).format("DD/MM/YYYY HH:mm")
             : "N/A",
         }))
       );
@@ -139,7 +142,7 @@ function PatientList() {
               View
             </Button>
           </Col>
-          <Col>
+          {["admin", "doctor","receptionist"].includes(user?.role)&&(<Col>
             <Button
               size="small"
               type="primary"
@@ -147,7 +150,7 @@ function PatientList() {
             >
               Edit
             </Button>
-          </Col>
+          </Col>)}
         </Row>
       ),
     },

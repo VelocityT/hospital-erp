@@ -1,5 +1,9 @@
 import express from "express";
-import { getAllIpdPatients, updateIpdDetails } from "../controllers/ipd.controller.js";
+import {
+  dischargePatient,
+  getAllIpdPatients,
+  updateIpdDetails,
+} from "../controllers/ipd.controller.js";
 import { getAvailableWardsAndBeds } from "../controllers/ward.controller.js";
 import { authenticateToken } from "../middlewares/auth.middleware.js";
 import { roleBasedAccess } from "../middlewares/roleBaseAccess.middleare.js";
@@ -10,7 +14,17 @@ router.use(authenticateToken);
 
 router.get("/all-ipd-patients", getAllIpdPatients);
 router.get("/available-wards-beds", getAvailableWardsAndBeds);
-router.put("/update-ipd/:ipdId",upload.none(),updateIpdDetails)
+
+router.put(
+  "/update-ipd/:ipdId",
+  roleBasedAccess(["admin", "receptionist", "doctor"]),upload.none(),
+  updateIpdDetails
+);
+router.put(
+  "/discharge-ipd-patient",
+  roleBasedAccess(["admin", "doctor"]),
+  dischargePatient
+);
 
 // router.use(roleBasedAccess(["admin"]));
 

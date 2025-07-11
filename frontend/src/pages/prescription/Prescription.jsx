@@ -24,6 +24,7 @@ const { Title, Text } = Typography;
 const Prescription = () => {
   const location = useLocation();
   const patientRecord = location.state;
+  // console.log(patientRecord);
 
   const [form] = Form.useForm();
   const [selectedCategory, setSelectedCategory] = React.useState();
@@ -86,7 +87,10 @@ const Prescription = () => {
     };
 
     localStorage.setItem("printPrescription", JSON.stringify(data));
-    localStorage.setItem("printPatientDescription", JSON.stringify(patientDescription));
+    localStorage.setItem(
+      "printPatientDescription",
+      JSON.stringify(patientDescription)
+    );
 
     window.open("/print", "_blank");
   };
@@ -141,7 +145,7 @@ const Prescription = () => {
             </div>
             <div className="mb-2">
               <Text>
-                <b>Doctor:</b> {doctor.fullName || "-"}
+                <b>Doctor:</b> {doctor?.fullName || "-"}
               </Text>
             </div>
           </Col>

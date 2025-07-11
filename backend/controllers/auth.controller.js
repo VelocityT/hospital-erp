@@ -28,7 +28,7 @@ export const loginUser = async (req, res) => {
     getUser.lastLogin = now;
     await getUser.save();
 
-    const formattedLastLogin = dayjs(now).format("DD-MM-YY HH:mm");
+    const formattedLastLogin = dayjs(now);
 
     const payload = {
       email: getUser.email,
@@ -70,7 +70,7 @@ export const loginUser = async (req, res) => {
 
 export const logoutUser = async (req, res) => {
   try {
-    console.log("logout trigger")
+    // console.log("logout trigger")
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

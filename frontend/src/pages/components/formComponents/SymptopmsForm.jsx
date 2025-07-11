@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Card, Row, Col, Form, Select, Input } from "antd";
+import { useEffect } from "react";
+import { Card, Row, Col, Form, Select } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { symptomsData } from "../../../utils/localStorage";
 
@@ -97,9 +97,14 @@ const SymptomsForm = ({
         </Col>
         <Col xs={24} md={12}>
           <Form.Item
-            label="Select Symptoms"
+            label="Select Symptom Titles"
             name="symptomsTitles"
-            required
+            rules={[
+              {
+                required: true,
+                message: "Please select at least one title",
+              },
+            ]}
           >
             <Select
               mode="tags"

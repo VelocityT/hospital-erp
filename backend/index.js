@@ -15,6 +15,7 @@ import ipdRoutes from "./routes/ipd.route.js";
 import authRoutes from "./routes/auth.route.js";
 import wardRoutes from "./routes/ward.route.js";
 import pharmacyRoutes from "./routes/pharmacy.route.js";
+import payRoutes from "./routes/pay.route.js";
 
 dotenv.config();
 connectDB();
@@ -24,14 +25,15 @@ const swaggerDocs = JSON.parse(fs.readFileSync(new URL("./swagger_output.json", 
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(cookieParser())
+
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://hospital-erp-frontend-iota.vercel.app" // 🔁 Replace this with your actual Vercel domain
+  // "https://hospital-erp-frontend-iota.vercel.app" // 🔁 Replace this with your actual Vercel domain
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    console.log("🔍 CORS origin:", origin);
+    console.log("CORS origin:", origin);
     if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
@@ -41,7 +43,30 @@ app.use(cors({
 }));
 
 app.get("/", (req, res) => {
-  res.send("API is running...");
+  res.send(`
+    <body style="
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      background: linear-gradient(to right, #007BFF, #00C6FF);
+      font-family: system-ui, sans-serif;
+      color: white;
+    ">
+      <h1 style="margin: 0;">🚀 Hospital ERP API</h1>
+      <a href="/api-docs" style="
+        margin-top: 16px;
+        color: #fff;
+        background: rgba(255,255,255,0.2);
+        padding: 10px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+      ">📘 Swagger Docs</a>
+    </body>
+  `);
 });
 // app.use((req, res, next) => {
 //   console.log(`[OPD ROUTE] ${req.method} ${req.originalUrl}`);
@@ -56,6 +81,7 @@ app.use("/api/ipd", ipdRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/ward", wardRoutes);
 app.use("/api/pharmacy", pharmacyRoutes);
+app.use("/api/pay", payRoutes);
 
 
 const PORT = process.env.PORT || 8080;

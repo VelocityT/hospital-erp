@@ -21,10 +21,42 @@ const medicineSchema = new mongoose.Schema(
     },
     manufacturer: {
       type: String,
-      required: true,
-      trim: true,
+      required: false,
     },
-    buyPrice: {
+    recDate: {
+      type: Date,
+      required: true,
+    },
+    batch: {
+      type: String,
+      required: false,
+    },
+    manufactureDate: {
+      type: Date,
+      required: false,
+    },
+    expiryDate: {
+      type: Date,
+      required: true,
+    },
+    supplier: {
+      type: String,
+      required: false,
+    },
+    invoiceNo: {
+      type: String,
+      required: false,
+    },
+    invoiceDate: {
+      type: Date,
+      required: false,
+    },
+    costPrice: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    purchasePrice: {
       type: Number,
       required: true,
       min: 0,
@@ -33,6 +65,19 @@ const medicineSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 0,
+    },
+    mrp: {
+      type: Number,
+      required: true,
+    },
+    currentStock: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {

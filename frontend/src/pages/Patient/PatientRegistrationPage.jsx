@@ -9,7 +9,6 @@ import {
   Col,
   Button,
   Card,
-  message,
 } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import "antd/dist/reset.css";
@@ -28,7 +27,6 @@ import OPDForm from "../components/formComponents/OPDForm";
 import IPDForm from "../components/formComponents/IPDForm";
 import SymptomsForm from "../components/formComponents/SymptopmsForm";
 import { generateUniqueNumber } from "../../utils/helper";
-import { beds, bedTypes } from "../../utils/localStorage";
 
 const { Option } = Select;
 
@@ -88,7 +86,7 @@ function PatientRegistrationPage({ edit }) {
             // Basic patient info
             fullName: patient.fullName,
             gender: patient.gender,
-            dob: patient.dob ? dayjs(patient.dob, "DD-MM-YYYY") : undefined,
+            dob: patient.dob ? dayjs(patient.dob) : undefined,
             bloodGroup: patient.bloodGroup,
             patientType: patient?.ipdDetails?.ipdNumber ? "IPD" : "OPD",
 
@@ -111,7 +109,7 @@ function PatientRegistrationPage({ edit }) {
             ...(!!patient?.ipdDetails?.ipdNumber && {
               ipdNumber: patient.ipdDetails.ipdNumber,
               admissionDateTime: patient.ipdDetails.admissionDate
-                ? dayjs(patient.ipdDetails.admissionDate, "DD-MM-YYYY HH:mm")
+                ? dayjs(patient.ipdDetails.admissionDate)
                 : undefined,
               symptoms: patient.ipdDetails.symptoms?.symptomNames,
               symptomsTitles: patient.ipdDetails.symptoms?.symptomTitles,
@@ -130,11 +128,11 @@ function PatientRegistrationPage({ edit }) {
             ...(!!patient?.opdDetails?.opdNumber && {
               opdNumber: patient.opdDetails.opdNumber,
               visitDateTime: patient.opdDetails.visitDateTime
-                ? dayjs(patient.opdDetails.visitDateTime, "DD-MM-YYYY HH:mm")
+                ? dayjs(patient.opdDetails.visitDateTime)
                 : undefined,
-              opdDoctor: patient.opdDetails.doctor?._id,
-              consultationFees: patient.opdDetails.consultationFees,
-              opdNotes: patient.opdDetails.notes,
+              doctor: patient.opdDetails.doctor?._id,
+              consultationFees: patient.opdDetails?.doctor?.opdCharge,
+              notes: patient.opdDetails.notes,
               symptoms: patient.opdDetails.symptoms?.symptomNames,
               symptomsTitles: patient.opdDetails.symptoms?.symptomTitles,
               symptomsDescription: patient.opdDetails.symptoms?.description,
@@ -220,18 +218,14 @@ function PatientRegistrationPage({ edit }) {
 
   const onFinish = async (values) => {
     try {
-      console.log(values);
-
-      // console.log(values)
-      // Convert date objects to ISO strings or formatted strings
       const formatDate = (date) =>
         date && typeof date === "object" && date.format
-          ? date.format("YYYY-MM-DD")
+          ? date.format("YYYY/MM/DD")
           : date;
 
       const formatDateTime = (date) =>
         date && typeof date === "object" && date.format
-          ? date.format("YYYY-MM-DD HH:mm")
+          ? date.format("YYYY/MM/DD HH:mm")
           : date;
 
       const formData = new FormData();
@@ -267,7 +261,7 @@ function PatientRegistrationPage({ edit }) {
           "OPD[visitDateTime]",
           formatDateTime(values.visitDateTime)
         );
-        formData.append("OPD[doctor]", values.opdDoctor);
+        formData.append("OPD[doctor]", values.doctor);
         formData.append("OPD[consultationFees]", values.consultationFees);
         formData.append("OPD[notes]", values.notes);
       }
@@ -426,7 +420,7 @@ function PatientRegistrationPage({ edit }) {
                   <DatePicker
                     size="large"
                     style={{ width: "100%" }}
-                    format="DD-MM-YYYY"
+                    format="DD/MM/YYYY"
                     onChange={handleDob}
                     inputReadOnly={false}
                     allowClear
@@ -635,7 +629,6 @@ function PatientRegistrationPage({ edit }) {
       </>
     );
   } else {
-    // Default: registration mode (show all as before)
     content = (
       <>
         {/* Personal Details */}
@@ -686,7 +679,7 @@ function PatientRegistrationPage({ edit }) {
                   <DatePicker
                     size="large"
                     style={{ width: "100%" }}
-                    format="DD-MM-YYYY"
+                    format="DD/MM/YYYY"
                     onChange={handleDob}
                     inputReadOnly={false}
                     allowClear
@@ -938,6 +931,7 @@ function PatientRegistrationPage({ edit }) {
         <Form
           form={form}
           layout="vertical"
+          onFinishFailed={() => toast.error("Please fill all required fields")}
           onFinish={onFinish}
           autoComplete="off"
         >

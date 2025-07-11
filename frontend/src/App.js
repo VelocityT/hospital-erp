@@ -6,7 +6,7 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import { ConfigProvider, Layout,theme as antdTheme } from "antd";
+import { ConfigProvider, Layout, theme as antdTheme } from "antd";
 import { Provider, useSelector } from "react-redux";
 
 import { store } from "./redux/store";
@@ -17,6 +17,7 @@ import LoginPage from "./pages/authRoute/LoginPage";
 import { roleRoutes } from "./routes/roleBaseRoutes";
 import ProtectedRoute from "./pages/components/ProtectedRoutes";
 import { Toaster } from "react-hot-toast";
+import NotFoundPage from "./pages/NotFoundPage";
 
 const { Content } = Layout;
 
@@ -42,13 +43,12 @@ function AppContent() {
         user={user}
       />
       <Layout
-        style={{
-          marginLeft: collapsed ? 80 : 200,
-          transition: "margin-left 0.2s",
-        }}
+        className={`transition-all duration-200 ${
+          collapsed ? "ml-[80px]" : "ml-[200px]"
+        } print:ml-0 print:w-full`}
       >
         <Navbar />
-        <Content className="p-6 overflow-y-auto">
+        <Content className="p-6 overflow-y-auto print:overflow-visible print:p-0">
           <Routes>
             {accessibleRoutes.map(({ path, element }) => (
               <Route
@@ -57,7 +57,8 @@ function AppContent() {
                 element={<ProtectedRoute>{element}</ProtectedRoute>}
               />
             ))}
-            <Route path="/" element={<Navigate to="/registration" replace />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Content>
       </Layout>
@@ -100,6 +101,7 @@ export default function App() {
           />
           <Routes>
             <Route path="/print" element={<Print />} />
+            <Route path="/print/bill" element={<Print />} />
             <Route path="/*" element={<AppContent />} />
           </Routes>
         </Router>

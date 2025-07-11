@@ -1,4 +1,4 @@
-import React from "react";
+import { MdRequestQuote } from "react-icons/md";
 import { Layout, Menu } from "antd";
 import {
   UserAddOutlined,
@@ -13,79 +13,7 @@ import { Link } from "react-router-dom";
 const { Sider } = Layout;
 
 const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
-  // Define role-based menu items
-  const adminMenu = [
-    {
-      key: "registration",
-      icon: <UserAddOutlined />,
-      label: <Link to="/registration">Patient Registration</Link>,
-    },
-    {
-      key: "patient-list",
-      icon: <TeamOutlined />,
-      label: <Link to="/patients">Patient List</Link>,
-    },
-    {
-      key: "doctor-list",
-      icon: <SolutionOutlined />,
-      label: <Link to="/doctors">Doctor List</Link>,
-    },
-    {
-      key: "opd-list",
-      icon: <MedicineBoxOutlined />,
-      label: <Link to="/opd-list">OPD List</Link>,
-    },
-    {
-      key: "ipd-list",
-      icon: <ProfileOutlined />,
-      label: <Link to="/ipd-list">IPD List</Link>,
-    },
-    {
-      key: "staff-management",
-      icon: <TeamOutlined />,
-      label: <Link to="/staff">Staff Management</Link>,
-    },
-    {
-      key: "ward-management",
-      icon: <RestOutlined />,
-      label: <Link to="/wards">Ward and Beds</Link>,
-    },
-        {
-      key:"Pharmacy",
-      icon: <MedicineBoxOutlined />,
-      label: <Link to="/pharmacy">Pharmacy</Link>,
-    }
-  ];
-
-  const doctorMenu = [
-    {
-      key: "registration",
-      icon: <UserAddOutlined />,
-      label: <Link to="/registration">Patient Registration</Link>,
-    },
-    {
-      key: "patient-list",
-      icon: <TeamOutlined />,
-      label: <Link to="/patients">Patient List</Link>,
-    },
-    {
-      key: "opd-list",
-      icon: <MedicineBoxOutlined />,
-      label: <Link to="/opd-list">OPD List</Link>,
-    },
-    {
-      key: "ipd-list",
-      icon: <ProfileOutlined />,
-      label: <Link to="/ipd-list">IPD List</Link>,
-    },
-    {
-      key: "ward-management",
-      icon: <RestOutlined />,
-      label: <Link to="/wards">Ward and Beds</Link>,
-    },
-  ];
-
-  const nurseMenu = [
+  const baseMenu = [
     {
       key: "patient-list",
       icon: <TeamOutlined />,
@@ -113,78 +41,72 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
     },
   ];
 
-  const pharmacistMenu = [
-    {
-      key: "patient-list",
-      icon: <TeamOutlined />,
-      label: <Link to="/patients">Patient List</Link>,
-    },
-    {
-      key: "doctor-list",
-      icon: <SolutionOutlined />,
-      label: <Link to="/doctors">Doctor List</Link>,
-    },
-    {
-      key: "opd-list",
-      icon: <MedicineBoxOutlined />,
-      label: <Link to="/opd-list">OPD List</Link>,
-    },
-    {
-      key: "ipd-list",
-      icon: <ProfileOutlined />,
-      label: <Link to="/ipd-list">IPD List</Link>,
-    },
-    {
-      key: "ward-management",
-      icon: <RestOutlined />,
-      label: <Link to="/wards">Ward and Beds</Link>,
-    },
-  ];
+  const roleMenus = {
+    admin: [
+      {
+        key: "billing",
+        icon: <MdRequestQuote />,
+        label: <Link to="/billing/patientBilling">Billing</Link>,
+      },
+      {
+        key: "registration",
+        icon: <UserAddOutlined />,
+        label: <Link to="/registration">Patient Registration</Link>,
+      },
+      ...baseMenu,
+      {
+        key: "staff-management",
+        icon: <TeamOutlined />,
+        label: <Link to="/staff">Staff Management</Link>,
+      },
+      {
+        key: "pharmacy",
+        icon: <MedicineBoxOutlined />,
+        label: <Link to="/pharmacy">Pharmacy</Link>,
+      },
+    ],
 
-  const receptionistMenu = [
-    {
-      key: "registration",
-      icon: <UserAddOutlined />,
-      label: <Link to="/registration">Patient Registration</Link>,
-    },
-    {
-      key: "patient-list",
-      icon: <TeamOutlined />,
-      label: <Link to="/patients">Patient List</Link>,
-    },
-    {
-      key: "doctor-list",
-      icon: <SolutionOutlined />,
-      label: <Link to="/doctors">Doctor List</Link>,
-    },
-    {
-      key: "opd-list",
-      icon: <MedicineBoxOutlined />,
-      label: <Link to="/opd-list">OPD List</Link>,
-    },
-    {
-      key: "ipd-list",
-      icon: <ProfileOutlined />,
-      label: <Link to="/ipd-list">IPD List</Link>,
-    },
-    {
-      key: "ward-management",
-      icon: <RestOutlined />,
-      label: <Link to="/wards">Ward and Beds</Link>,
-    },
-    {
-      key:"Pharmacy",
-      icon: <MedicineBoxOutlined />,
-      label: <Link to="/pharmacy">Pharmacy</Link>,
-    }
-  ];
+    doctor: [
+      {
+        key: "registration",
+        icon: <UserAddOutlined />,
+        label: <Link to="/registration">Patient Registration</Link>,
+      },
+      ...baseMenu,
+    ],
 
-  let menuItems = [];
-  if (user?.role === "admin") menuItems = adminMenu;
-  // else if (user?.role === "doctor") menuItems = doctorMenu;
-  // else if (user?.role === "nurse") menuItems = nurseMenu;
-  // else if (user?.role === "pharmacist") menuItems = pharmacistMenu;
-  // else if (user?.role === "receptionist") menuItems = receptionistMenu;
+    nurse: [...baseMenu],
+
+    pharmacist: [
+      ...baseMenu,
+      {
+        key: "pharmacy-add",
+        icon: <MedicineBoxOutlined />,
+        label: <Link to="/pharmacy/medicine/add">Add Medicine</Link>,
+      },
+      {
+        key: "pharmacy",
+        icon: <MedicineBoxOutlined />,
+        label: <Link to="/pharmacy">Pharmacy</Link>,
+      },
+    ],
+
+    receptionist: [
+      {
+        key: "registration",
+        icon: <UserAddOutlined />,
+        label: <Link to="/registration">Patient Registration</Link>,
+      },
+      ...baseMenu,
+      {
+        key: "billing",
+        icon: <MdRequestQuote />,
+        label: <Link to="/billing/patientBilling">Billing</Link>,
+      },
+    ],
+  };
+
+  const menuItems = roleMenus[user?.role] || [];
 
   return (
     <Sider
@@ -193,7 +115,7 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       onCollapse={setCollapsed}
       breakpoint="md"
       collapsedWidth={80}
-      className="overflow-auto"
+      className="overflow-auto print:hidden"
       style={{
         position: "fixed",
         left: 0,
