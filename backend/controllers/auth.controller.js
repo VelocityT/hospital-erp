@@ -5,10 +5,10 @@ import bcrypt from "bcrypt";
 
 export const loginUser = async (req, res) => {
   try {
-    const { username, password, role } = req.body;
+    const { email, password, role } = req.body;
     // console.log(req.body);
 
-    const getUser = await User.findOne({ email: username, role });
+    const getUser = await User.findOne({ email, role });
     if (!getUser) {
       return res.status(401).json({
         success: false,

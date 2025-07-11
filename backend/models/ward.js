@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 
 const wardSchema = new mongoose.Schema(
   {
+    admin: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     name: {
       type: String,
       required: true,
@@ -9,15 +13,29 @@ const wardSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["General", "Private", "ICU", "Semi-Private", "Emergency"],
       required: true,
+      trim: true,
     },
-    department: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Department",
-    },
+    // department: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Department",
+    // },
     floor: {
       type: String,
+      enum: [
+        "Ground",
+        "1st",
+        "2nd",
+        "3rd",
+        "4th",
+        "5th",
+        "6th",
+        "7th",
+        "8th",
+        "9th",
+        "10th",
+      ],
+      trim: true,
     },
     capacity: {
       type: Number,
@@ -31,4 +49,5 @@ const wardSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Ward", wardSchema);
+const Ward = mongoose.model("Ward", wardSchema);
+export default Ward;

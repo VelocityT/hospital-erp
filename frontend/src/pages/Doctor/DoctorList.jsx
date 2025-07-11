@@ -35,7 +35,8 @@ const columnsBase = [
     title: "Department",
     dataIndex: "department",
     key: "department",
-    render: (val) => val?.replace(/-/g, " ")?.replace(/\b\w/g, c => c.toUpperCase()) || "-",
+    render: (val) =>
+      val?.replace(/-/g, " ")?.replace(/\b\w/g, (c) => c.toUpperCase()) || "-",
   },
   {
     title: "Designation",
@@ -46,12 +47,6 @@ const columnsBase = [
     title: "Specialist",
     dataIndex: "specialist",
     key: "specialist",
-  },
-  {
-    title: "Appointment Charge",
-    dataIndex: "appointmentCharge",
-    key: "appointmentCharge",
-    render: (val) => val ? `₹${val}` : "-",
   },
   {
     title: "Phone",
@@ -69,16 +64,16 @@ const DoctorList = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const getDoctorsList = async()=>{
-      const response = await getUsersApi({userType : "doctor"})
+    const getDoctorsList = async () => {
+      const response = await getUsersApi({ userType: "doctor" });
       // console.log(response)
-        setData(response?.data?.map((d, idx) => ({ ...d, key: idx })));
-    }
-    getDoctorsList()
-
+      setData(response?.data?.map((d, idx) => ({ ...d, key: idx })));
+    };
+    getDoctorsList();
   }, [location]);
 
   const handleView = (record) => {
+    console.log(record);
     setSelectedDoctor(record);
     setViewDrawer(true);
   };
@@ -92,7 +87,8 @@ const DoctorList = () => {
   const filteredData = data.filter(
     (d) =>
       !searchText ||
-      (d.fullName && d.fullName.toLowerCase().includes(searchText.toLowerCase())) ||
+      (d.fullName &&
+        d.fullName.toLowerCase().includes(searchText.toLowerCase())) ||
       (d.email && d.email.toLowerCase().includes(searchText.toLowerCase())) ||
       (d.phone && d.phone.includes(searchText))
   );
@@ -161,6 +157,9 @@ const DoctorList = () => {
         >
           {selectedDoctor && (
             <Descriptions column={1} bordered size="small">
+              <Descriptions.Item label="Staff ID">
+                {selectedDoctor.staffId}
+              </Descriptions.Item>
               <Descriptions.Item label="Full Name">
                 {selectedDoctor.fullName}
               </Descriptions.Item>
@@ -174,7 +173,9 @@ const DoctorList = () => {
                 {selectedDoctor.bloodGroup}
               </Descriptions.Item>
               <Descriptions.Item label="Department">
-                {selectedDoctor.department?.replace(/-/g, " ")?.replace(/\b\w/g, c => c.toUpperCase())}
+                {selectedDoctor.department
+                  ?.replace(/-/g, " ")
+                  ?.replace(/\b\w/g, (c) => c.toUpperCase())}
               </Descriptions.Item>
               <Descriptions.Item label="Designation">
                 {selectedDoctor.designation}
@@ -185,8 +186,13 @@ const DoctorList = () => {
               <Descriptions.Item label="Specialist">
                 {selectedDoctor.specialist}
               </Descriptions.Item>
-              <Descriptions.Item label="Appointment Charge">
-                {selectedDoctor.appointmentCharge ? `₹${selectedDoctor.appointmentCharge}` : "-"}
+
+              <Descriptions.Item label="OPD Charge">
+                ₹{selectedDoctor.opdCharge}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="IPD Charge">
+                ₹{selectedDoctor.ipdCharge}
               </Descriptions.Item>
               <Descriptions.Item label="Email">
                 {selectedDoctor.email}
@@ -194,17 +200,38 @@ const DoctorList = () => {
               <Descriptions.Item label="Phone">
                 {selectedDoctor.phone}
               </Descriptions.Item>
-              <Descriptions.Item label="Address 1">
-                {selectedDoctor.line1}
+              <Descriptions.Item label="Current Address">
+                {selectedDoctor.currentAddress}
               </Descriptions.Item>
-              <Descriptions.Item label="Address 2">
-                {selectedDoctor.line2}
+              <Descriptions.Item label="Permanent Address">
+                {selectedDoctor.permanentAddress}
               </Descriptions.Item>
-              <Descriptions.Item label="City">
-                {selectedDoctor.city}
+              <Descriptions.Item label="Father's Name">
+                {selectedDoctor.fatherName}
               </Descriptions.Item>
-              <Descriptions.Item label="Pincode">
-                {selectedDoctor.pincode}
+              <Descriptions.Item label="Mother's Name">
+                {selectedDoctor.motherName}
+              </Descriptions.Item>
+              <Descriptions.Item label="Marital Status">
+                {selectedDoctor.maritalStatus}
+              </Descriptions.Item>
+              <Descriptions.Item label="Date of Joining">
+                {selectedDoctor.dateOfJoining}
+              </Descriptions.Item>
+              <Descriptions.Item label="Work Experience">
+                {selectedDoctor.workExperience}
+              </Descriptions.Item>
+              <Descriptions.Item label="PAN Number">
+                {selectedDoctor.panNumber}
+              </Descriptions.Item>
+              <Descriptions.Item label="Aadhar Number">
+                {selectedDoctor.aadharNumber}
+              </Descriptions.Item>
+              <Descriptions.Item label="Reference">
+                {selectedDoctor.reference}
+              </Descriptions.Item>
+              <Descriptions.Item label="Note">
+                {selectedDoctor.note}
               </Descriptions.Item>
             </Descriptions>
           )}

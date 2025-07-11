@@ -28,9 +28,10 @@ import {
 } from "../../services/apis";
 import dayjs from "dayjs";
 import PatientDetailsPreview from "../components/PatientDetailsPreview";
-import IPDForm from "../components/IPDForm";
+import IPDForm from "../components/formComponents/IPDForm";
 import { generateUniqueNumber } from "../../utils/helper";
 import { beds, bedTypes } from "../../utils/localStorage";
+import toast from "react-hot-toast";
 
 function OPDIPDList({ type }) {
   const [data, setData] = useState([]);
@@ -76,8 +77,8 @@ function OPDIPDList({ type }) {
 
   const handleView = async (record) => {
     const response = await getPatientDetailsIpdOpdApi(record?._id, {
-      ipdNumber: record.ipdNumber,
-      opdNumber: record.opdNumber,
+      isIpdPatient: record?.ipdNumber ? true : false,
+      isOpdPatient: record?.opdNumber ? true : false,
     });
     // console.log(response)
     setSelectedPatient(response.data);
@@ -86,7 +87,10 @@ function OPDIPDList({ type }) {
 
   const handleEdit = (record) => {
     sessionStorage.setItem("editPatient", JSON.stringify(record));
-    navigate(`/registration/edit/${record?.patient?._id}`);
+    console.log(record)
+    if (record.ipdNumber) return navigate(`/ipd/edit/${record?._id}`);
+    else if (record.opdNumber)
+      return navigate(`/opd/edit/${record?._id}`);
   };
 
   const handleSwitchType = (record) => {
@@ -104,13 +108,13 @@ function OPDIPDList({ type }) {
       // console.log(values)
       const response = await switchToIpdApi(ipdPatient.patient?._id, values);
       console.log(response);
-      message.success(
+      toast.success(
         `Patient "${ipdPatient?.patient?.fullName}" switched to IPD successfully!`
       );
       setIpdModalOpen(false);
       setIpdPatient(null);
     } catch (error) {
-      message.error(error?.message || "Failed to switch to IPD");
+      toast.error(error?.message || "Failed to switch to IPD");
     }
   };
 
@@ -142,7 +146,13 @@ function OPDIPDList({ type }) {
       key: "number",
       render: (_, record) => {
         const id = type === "ipd" ? record.ipdNumber : record.opdNumber;
-        return id ? <Link to={`/patient/${id}`}>{id}</Link> : "-";
+        return id ? (
+          <Link to={`/patient/${id}`} className="text-blue-600">
+            {id}
+          </Link>
+        ) : (
+          "-"
+        );
       },
     },
     {

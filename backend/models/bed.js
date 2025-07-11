@@ -12,32 +12,38 @@ const bedSchema = new mongoose.Schema(
       ref: "Ward",
       required: true,
     },
-    type: {
+    // type: {
+    //   type: String,
+    //   enum: ["Regular", "ICU", "Ventilator", "Special"],
+    //   default: "Regular",
+    // },
+    status: {
       type: String,
-      enum: ["Regular", "ICU", "Ventilator", "Special"],
-      default: "Regular",
-    },
-    isOccupied: {
-      type: Boolean,
-      default: false,
+      enum: ["Available", "Occupied", "Maintenance"],
+      default: "Available",
     },
     patient: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Patient",
       default: null,
     },
-    admissionId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Admission",
-      default: null,
-    },
+    // admissionId: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Admission",
+    //   default: null,
+    // },
     notes: {
       type: String,
       trim: true,
     },
-    isActive: {
-      type: Boolean,
-      default: true,
+    // isActive: {
+    //   type: Boolean,
+    //   default: true,
+    // },
+    charge: {
+      type: Number,
+      min: 0,
+      default: 0,
     },
   },
   { timestamps: true }
@@ -45,4 +51,5 @@ const bedSchema = new mongoose.Schema(
 
 bedSchema.index({ bedNumber: 1, ward: 1 }, { unique: true });
 
-export default mongoose.model("Bed", bedSchema);
+const Bed = mongoose.model("Bed", bedSchema);
+export default Bed;
