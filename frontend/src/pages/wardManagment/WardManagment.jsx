@@ -5,7 +5,6 @@ import {
   getAllWardTypesApi,
   getAllWardsApi,
   deleteWardApi,
-  // updateWardApi, // <-- remove this import
 } from "../../services/apis";
 import {
   Button,
@@ -169,7 +168,6 @@ const WardManagment = () => {
           toast.error(response.message || "Failed to update ward.");
         }
       } else {
-        // Add mode: send only data
         response = await createAndUpdateWardApi(values);
         setWards((prev) =>
           [...prev, response.ward].sort((a, b) =>
@@ -216,7 +214,7 @@ const WardManagment = () => {
   // If no ward types, show button and note
   if (!wardTypes || wardTypes.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[300px]">
+      <div className="flex flex-col items-center justify-center min-h-[300px] overflow-hidden">
         <Alert
           message="Please add Ward Types before creating wards or beds."
           type="info"
@@ -355,8 +353,8 @@ const WardManagment = () => {
   return (
     <div>
       {/* Top action buttons, responsive, outside card */}
-      <Row gutter={[8, 16]} align="middle" justify="end" className="mb-4">
-        <Col xs={24} sm="auto" className="flex flex-wrap gap-2 justify-end">
+      <Row gutter={[8, 16]} align="middle" justify="end" className="mb-4 overflow-hidden">
+        <Col xs={24} sm="auto" className="flex flex-wrap gap-2 justify-end overflow-hidden">
           {user?.role === "admin" && (
             <>
               <Button onClick={handleOpenUpdateWardTypes} className="mb-2">
@@ -370,7 +368,7 @@ const WardManagment = () => {
         </Col>
       </Row>
       <Card className="m-0">
-        <Row align="middle" justify="space-between" className="mb-6">
+        <Row align="middle" justify="space-between" className="mb-6 overflow-hidden">
           <Col xs={24} sm={12}>
             <h2 className="text-lg font-bold mb-0">Ward</h2>
           </Col>
@@ -393,7 +391,7 @@ const WardManagment = () => {
             rowKey="_id"
             pagination={false}
             locale={{ emptyText: "No wards found." }}
-            scroll={{ x: "max-content" }} // <-- Make table responsive horizontally
+            scroll={{ x: "max-content" }}
           />
         </div>
 

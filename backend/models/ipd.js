@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const ipdAdmissionSchema = new mongoose.Schema({
+  hospital: { type: mongoose.Schema.Types.ObjectId, ref: "Hospital" },
   ipdNumber: { type: String, unique: true, required: true },
   patient: {
     type: mongoose.Schema.Types.ObjectId,
@@ -57,7 +58,7 @@ const ipdAdmissionSchema = new mongoose.Schema({
     status: {
       type: String,
       enum: ["Paid", "Unpaid", "Pending"],
-    default: "Unpaid",
+      default: "Unpaid",
     },
     // amount: {
     //   type: Number,

@@ -2,7 +2,8 @@ import User from "../models/user.js";
 
 export const getDoctorsForPatientResgistration = async (req, res) => {
   try {
-    const response = await User.find({ role: "doctor" }).select("fullName ipdCharge opdCharge");
+    const {hospital} = req.authority
+    const response = await User.find({hospital, role: "doctor" }).select("fullName ipdCharge opdCharge");
 
     return res.status(201).json({
       success: true,

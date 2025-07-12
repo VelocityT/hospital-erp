@@ -114,8 +114,6 @@ function OPDIPDList({ type }) {
   }, [filterMode, selectedDate, allPatients]);
 
   const filterPatientsLocally = () => {
-    setLoading(true);
-
     const filtered =
       filterMode === "all"
         ? allPatients
@@ -127,7 +125,6 @@ function OPDIPDList({ type }) {
 
     setData(filtered);
     setFilteredData(filtered);
-    setLoading(false);
   };
 
   useEffect(() => {

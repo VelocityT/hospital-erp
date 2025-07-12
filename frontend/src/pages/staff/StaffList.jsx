@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAllStaffApi } from "../../services/apis";
-import { Row, Col, Input, Tag, Spin, Empty, Select } from "antd";
+import { Row, Col, Input, Tag,  Spin, Empty, Select } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const dummyImg =
@@ -109,7 +109,7 @@ const StaffList = () => {
 
       {loading ? (
         <div className="flex justify-center items-center h-40">
-          <Spin />
+          <Spin size="large" />
         </div>
       ) : filteredStaffs.length === 0 ? (
         <Empty description="No staff found" />

@@ -1,22 +1,29 @@
-import  { useState } from "react";
-import { Layout, Avatar, Dropdown, Menu, Modal, Button, message, Tooltip } from "antd";
+import { useState } from "react";
+import {
+  Layout,
+  Avatar,
+  Dropdown,
+  Menu,
+  Modal,
+  Button,
+  message,
+  Tooltip,
+} from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutUserApi } from "../../services/apis";
 import { removeUser } from "../../redux/userSlice";
 import { useNavigate } from "react-router-dom";
-import {
-  FaSignOutAlt,
-  FaUserCircle,
-} from "react-icons/fa";
+import { FaSignOutAlt, FaUserCircle } from "react-icons/fa";
 import { MdOutlineLightMode } from "react-icons/md";
 import { IoMoonOutline } from "react-icons/io5";
-
+import { removeHospital } from "../../redux/hospitalSlice";
 
 const { Header } = Layout;
 
 const Navbar = () => {
   const user = useSelector((state) => state.user);
+  const hospital = useSelector((state) => state.hospital);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
@@ -31,6 +38,7 @@ const Navbar = () => {
       const response = await logoutUserApi();
       message.success(response.message);
       dispatch(removeUser());
+      dispatch(removeHospital())
       navigate("/login");
     } else if (key === "toggle-theme") {
       const newTheme = window.theme === "dark" ? "light" : "dark";
@@ -53,37 +61,48 @@ const Navbar = () => {
   return (
     <>
       <Header className="bg-white dark:bg-inherit px-4 flex justify-between items-center shadow-sm">
-  {user?.role && (
-    <div className="text-sm font-semibold">{user.role.toUpperCase()}</div>
-  )}
+        {user?.role === "superAdmin" ? (
+          <div className="text-sm font-semibold">SUPER ADMIN</div>
+        ) : (
+          <div className="text-sm font-semibold">{user.role.toUpperCase()}</div>
+        )}
 
-  {user && (
-    <div className="flex items-center space-x-4">
-      <Tooltip title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}>
-      <button
-        onClick={() => handleMenuClick({ key: "toggle-theme" })}
-        className="text-xl hover:text-yellow-500 transition-colors duration-200"
-      >
-        {theme === "dark" ? <MdOutlineLightMode /> : <IoMoonOutline />}
-      </button>
-      </Tooltip>
+        {user && (
+          <div className="flex items-center space-x-4">
+            <Tooltip
+              title={
+                theme === "dark"
+                  ? "Switch to Light Mode"
+                  : "Switch to Dark Mode"
+              }
+            >
+              <button
+                onClick={() => handleMenuClick({ key: "toggle-theme" })}
+                className="text-xl hover:text-yellow-500 transition-colors duration-200"
+              >
+                {theme === "dark" ? <MdOutlineLightMode /> : <IoMoonOutline />}
+              </button>
+            </Tooltip>
 
-      {/* 👤 User Dropdown */}
-      <Dropdown overlay={userMenu} trigger={["click"]}>
-        <div className="cursor-pointer flex items-center space-x-2">
-          <Avatar icon={<UserOutlined />} />
-          <span className="font-medium hidden md:inline">
-            {user.fullName}
-          </span>
-        </div>
-      </Dropdown>
-    </div>
-  )}
-</Header>
-
+            {/* 👤 User Dropdown */}
+            <Dropdown overlay={userMenu} trigger={["click"]}>
+              <div className="cursor-pointer flex items-center space-x-2">
+                <Avatar icon={<UserOutlined />} />
+                <span className="font-medium hidden md:inline">
+                  {user.fullName}
+                </span>
+              </div>
+            </Dropdown>
+          </div>
+        )}
+      </Header>
 
       <Modal
-        title="User Profile"
+        title={
+          <p className="font-semibold text-xl text-green-700">
+            {hospital?.fullName.toUpperCase()}
+          </p>
+        }
         open={isProfileModalVisible}
         onCancel={() => setProfileModalVisible(false)}
         footer={[
@@ -94,9 +113,15 @@ const Navbar = () => {
       >
         {user && (
           <div>
-            <p><b>Name:</b> {user.fullName}</p>
-            <p><b>Role:</b> {user.role}</p>
-            <p><b>Last Login:</b> {user.lastLogin}</p>
+            <p>
+              <b>Name:</b> {user.fullName}
+            </p>
+            <p>
+              <b>Role:</b> {user.role}
+            </p>
+            <p>
+              <b>Last Login:</b> {user.lastLogin}
+            </p>
           </div>
         )}
       </Modal>

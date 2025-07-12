@@ -97,7 +97,7 @@ function PatientRegistrationPage({ edit }) {
 
             // Contact Info
             phone: patient.contact?.phone,
-            email: patient.contact?.email,
+            email: patient.contact?.email || "",
 
             // Address Info
             line1: patient.address?.line1,
@@ -116,9 +116,9 @@ function PatientRegistrationPage({ edit }) {
               symptomsDescription: patient.ipdDetails.symptoms?.description,
               ward: patient.ipdDetails.ward?._id,
               bed: patient.ipdDetails.bed?._id,
-              height: patient.ipdDetails.height,
-              weight: patient.ipdDetails.weight,
-              bloodPressure: patient.ipdDetails.bloodPressure,
+              height: Number(patient.ipdDetails.height) || 0,
+              weight: Number(patient.ipdDetails.weight) || 0,
+              bloodPressure: patient.ipdDetails?.bloodPressure || 0,
               ipdNotes: patient.ipdDetails.notes,
               doctor: patient.ipdDetails.attendingDoctor?._id,
               ipdCharge: patient.ipdDetails.attendingDoctor?.ipdCharge,
@@ -912,14 +912,13 @@ function PatientRegistrationPage({ edit }) {
   }
 
   return (
-    <div className="pb-4">
+    <div className="p-0">
       <Card
         title={
           <>
             {isEdit && editPatientId && (
               <div style={{ fontWeight: 500, color: "#888", marginBottom: 4 }}>
-                Patient ID:{" "}
-                <span style={{ color: "#222" }}>{editPatientId}</span>
+                Patient ID: <span>{editPatientId}</span>
               </div>
             )}
             {isEdit ? "Update Patient" : "Patient Registration"}

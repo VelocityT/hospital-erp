@@ -4,7 +4,7 @@ import { getPatientDetailsIpdOpdApi } from "../../services/apis";
 import { toast } from "react-hot-toast";
 import { Spin, Button, Card, Row, Descriptions, Divider } from "antd";
 import { BillDetailsList } from "../components/billing/ChargeTable";
-import dayjs from "dayjs"
+import dayjs from "dayjs";
 
 const IpdOpdDetails = () => {
   const { id } = useParams();
@@ -41,7 +41,12 @@ const IpdOpdDetails = () => {
     }
   };
 
-  if (loading) return <Spin fullscreen />;
+  if (loading)
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <Spin size="large" />
+      </div>
+    );
   if (!entryDetails) return null;
 
   const details =
@@ -67,7 +72,9 @@ const IpdOpdDetails = () => {
           <Descriptions.Item label="Gender">
             {entryDetails?.gender}
           </Descriptions.Item>
-          <Descriptions.Item label="DOB">{dayjs(entryDetails?.dob).format("DD/MM/YYYY")}</Descriptions.Item>
+          <Descriptions.Item label="DOB">
+            {dayjs(entryDetails?.dob).format("DD/MM/YYYY")}
+          </Descriptions.Item>
           <Descriptions.Item label="Blood Group">
             {entryDetails?.bloodGroup}
           </Descriptions.Item>

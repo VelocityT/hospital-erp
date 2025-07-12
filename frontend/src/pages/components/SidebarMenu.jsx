@@ -9,6 +9,7 @@ import {
   RestOutlined,
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
+import { FaHospital } from "react-icons/fa";
 
 const { Sider } = Layout;
 
@@ -109,6 +110,18 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
         label: <Link to="/billing/patientBilling">Billing</Link>,
       },
     ],
+    superAdmin: [
+      {
+        key: "dashboard",
+        icon: <MdSpaceDashboard />,
+        label: <Link to="/dashboard">Dashboard</Link>,
+      },
+      {
+        key: "hospitals",
+        icon: <FaHospital />,
+        label: <Link to="/hospitals">Hospitals</Link>,
+      },
+    ],
   };
 
   const menuItems = roleMenus[user?.role] || [];
@@ -130,7 +143,12 @@ const SidebarMenu = ({ collapsed, setCollapsed, user }) => {
       }}
     >
       <div className="text-white p-4 font-bold text-center">Logo</div>
-      <Menu theme="dark" mode="inline" items={menuItems} />
+      <Menu
+        theme="dark"
+        mode="inline"
+        items={menuItems}
+        className="text-base"
+      />
     </Sider>
   );
 };

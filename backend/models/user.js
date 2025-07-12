@@ -4,22 +4,23 @@ const userSchema = new mongoose.Schema({
   staffId: {
     type: String,
     unique: true,
-    default: () => {
-      const randomChar = String.fromCharCode(
-        65 + Math.floor(Math.random() * 26)
-      );
-      const timestampPart = Date.now().toString().slice(-6);
-      return `${randomChar}${timestampPart}`;
-    },
+    required:true,
   },
   fullName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  profilePhoto:{type:String},
+  profilePhoto: { type: String },
 
   role: {
     type: String,
-    enum: ["admin", "doctor", "nurse", "receptionist", "pharmacist"],
+    enum: [
+      "admin",
+      "doctor",
+      "nurse",
+      "receptionist",
+      "pharmacist",
+      "superAdmin",
+    ],
     default: "receptionist",
   },
   department: { type: String },
@@ -28,7 +29,7 @@ const userSchema = new mongoose.Schema({
   gender: { type: String, enum: ["Male", "Female", "Other"] },
   dob: { type: Date },
   bloodGroup: { type: String },
-  phone: { type: String ,required: true, unique: true},
+  phone: { type: String, required: true, unique: true },
   emergencyContact: { type: String },
   fatherName: { type: String },
   motherName: { type: String },
@@ -48,6 +49,8 @@ const userSchema = new mongoose.Schema({
   panNumber: { type: String },
   aadharNumber: { type: String },
   reference: { type: String },
+
+  hospital: { type: mongoose.Schema.Types.ObjectId, ref: "Hospital" },
 
   lastLogin: { type: Date },
   createdAt: { type: Date, default: Date.now },

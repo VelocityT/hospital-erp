@@ -1,10 +1,11 @@
 import mongoose from "mongoose";
 
 const wardTypeConfigSchema = new mongoose.Schema({
+  hospital: { type: mongoose.Schema.Types.ObjectId, ref: "Hospital" },
   types: {
     type: [String],
     default: ["General", "Private", "ICU", "Semi-Private", "Emergency"],
-    trim:true
+    trim: true,
   },
   admin: {
     type: mongoose.Schema.Types.ObjectId,

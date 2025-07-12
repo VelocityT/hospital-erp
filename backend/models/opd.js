@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const opdVisitSchema = new mongoose.Schema({
+  hospital: { type: mongoose.Schema.Types.ObjectId, ref: "Hospital" },
   opdNumber: { type: String, unique: true, required: true },
   patient: {
     type: mongoose.Schema.Types.ObjectId,

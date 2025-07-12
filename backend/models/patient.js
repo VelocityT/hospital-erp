@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const patientSchema = new mongoose.Schema({
+  hospital: { type: mongoose.Schema.Types.ObjectId, ref: "Hospital" },
   registrationDate: { type: Date, default: Date.now },
   patientId: {
     type: String,

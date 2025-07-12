@@ -372,11 +372,54 @@ export const getDashboardStaticData = async () => {
 };
 export const getIncomeOverviewApi = async (params) => {
   try {
-    const response = await API.get(
-      "/auth/income/overview",{params}
-    );
+    const response = await API.get("/auth/income/overview", { params });
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
+  }
+};
+export const createOrUpdateHospitalApi = async (formData) => {
+  try {
+    const res = await API.post("/auth/create-update-hospital", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (error) {
+    return error.response?.data || error.message;
+  }
+};
+export const getHospitalsListApi = async () => {
+  try {
+    const response = await API.get("/auth/hospitals-list");
+    return response.data;
+  } catch (error) {
+    return error.response?.data || error.message;
+  }
+};
+export const getHospitalByIdApi = async (id) => {
+  try {
+    const response = await API.get(`/auth/hospital/${id}`);
+    return response.data;
+  } catch (error) {
+    return error.response?.data || error.message;
+  }
+};
+export const impersonateUserApi = async (userId) => {
+  try {
+    const response = await API.post(`/auth/impersonate/${userId}`);
+    return response.data;
+  } catch (error) {
+    return error.response?.data || error.message;
+  }
+};
+export const leaveImpersonationApi = async () => {
+  try {
+    const response = await API.post("/auth/leave-impersonation");
+    return response.data;
+  } catch (error) {
+    return error.response?.data || { success: false, message: error.message };
   }
 };

@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const billSchema = new mongoose.Schema(
   {
+    hospital: { type: mongoose.Schema.Types.ObjectId, ref: "Hospital" },
     billNumber: {
       type: String,
       unique: true,

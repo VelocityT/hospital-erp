@@ -6,8 +6,8 @@ import WardTypeConfig from "../models/wardType.js";
 
 export const createOrUpdateWardTypes = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const { wardTypesArr } = req.body;
-    const adminId = req.authority._id;
 
     if (!Array.isArray(wardTypesArr) || wardTypesArr.length === 0) {
       return res
@@ -19,7 +19,7 @@ export const createOrUpdateWardTypes = async (req, res) => {
     const newTypes = wardTypesArr.map((t) => t.trim()).filter(Boolean);
 
     // Fetch existing config
-    let config = await WardTypeConfig.findOne({ admin: adminId });
+    let config = await WardTypeConfig.findOne({ hospital});
 
     if (config) {
       // Merge without duplicates
@@ -37,8 +37,8 @@ export const createOrUpdateWardTypes = async (req, res) => {
 
     // Create new config
     config = await WardTypeConfig.create({
+      hospital,
       types: newTypes,
-      admin: adminId,
     });
 
     res.status(201).json({
@@ -52,11 +52,11 @@ export const createOrUpdateWardTypes = async (req, res) => {
 };
 export const getAllWardTypes = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     // console.log(req.authority)
-    const adminId = req.authority._id;
 
     // const config = await WardTypeConfig.findOne({ admin: adminId });
-    const config = await WardTypeConfig.findOne();
+    const config = await WardTypeConfig.findOne({ hospital });
 
     if (!config) {
       return res.status(404).json({
@@ -77,7 +77,7 @@ export const getAllWardTypes = async (req, res) => {
 
 export const createAndUpdateWard = async (req, res) => {
   try {
-    const adminId = req.authority._id;
+    const { hospital } = req.authority;
     const { wardId, type, ...rest } = req.body;
 
     if (!type || typeof type !== "string") {
@@ -89,7 +89,7 @@ export const createAndUpdateWard = async (req, res) => {
     const trimmedType = type.trim().toLowerCase();
 
     // Fetch allowed types for admin
-    const config = await WardTypeConfig.findOne({ admin: adminId });
+    const config = await WardTypeConfig.findOne({ hospital });
     if (!config || !Array.isArray(config.types)) {
       return res.status(400).json({
         success: false,
@@ -108,7 +108,7 @@ export const createAndUpdateWard = async (req, res) => {
     // 🛠 UPDATE if wardId provided
     if (wardId) {
       const updated = await Ward.findOneAndUpdate(
-        { _id: wardId, admin: adminId },
+        { _id: wardId, hospital },
         { ...rest, type: type.trim() },
         { new: true }
       );
@@ -130,7 +130,7 @@ export const createAndUpdateWard = async (req, res) => {
     const ward = await Ward.create({
       ...rest,
       type: type.trim(),
-      admin: adminId,
+      hospital,
     });
 
     return res
@@ -144,9 +144,14 @@ export const createAndUpdateWard = async (req, res) => {
 
 export const updateWard = async (req, res) => {
   try {
-    const updated = await Ward.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const { hospital } = req.authority;
+    const updated = await Ward.findOneAndUpdate(
+      { _id: req.params.id, hospital },
+      req.body,
+      {
+        new: true,
+      }
+    );
     if (!updated) {
       return res
         .status(404)
@@ -160,14 +165,16 @@ export const updateWard = async (req, res) => {
 
 export const getAllWards = async (req, res) => {
   try {
-    const adminId = req.authority._id;
+    const { hospital } = req.authority;
 
     // const wards = await Ward.find({ admin: adminId }).sort({ createdAt: -1 });
-    const wards = await Ward.find().sort({ createdAt: -1 });
+    const wards = await Ward.find({ hospital }).sort({ createdAt: -1 });
 
     const enrichedWards = await Promise.all(
       wards.map(async (ward) => {
-        const beds = await Bed.find({ ward: ward._id }).sort({ createdAt: 1 });
+        const beds = await Bed.find({ hospital, ward: ward._id }).sort({
+          createdAt: 1,
+        });
         return {
           ...ward.toObject(),
           beds,
@@ -192,6 +199,7 @@ export const getAllWards = async (req, res) => {
 
 export const createBeds = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const { count, ward, charge } = req.body;
     console.log(req.body);
 
@@ -203,7 +211,7 @@ export const createBeds = async (req, res) => {
     }
 
     // 1. Check if ward exists
-    const wardData = await Ward.findById(ward);
+    const wardData = await Ward.findOne({ _id: ward, hospital });
     if (!wardData) {
       return res.status(404).json({
         success: false,
@@ -212,7 +220,7 @@ export const createBeds = async (req, res) => {
     }
 
     // 2. Get existing beds in the ward
-    const existingBedsCount = await Bed.countDocuments({ ward });
+    const existingBedsCount = await Bed.countDocuments({ hospital, ward });
 
     // 3. Check if adding new beds exceeds capacity
     if (existingBedsCount + count > wardData.capacity) {
@@ -230,6 +238,7 @@ export const createBeds = async (req, res) => {
     for (let i = 1; i <= count; i++) {
       const bedNumber = String(existingBedsCount + i); // auto incrementing number
       newBeds.push({
+        hospital,
         bedNumber,
         ward,
         charge,
@@ -241,6 +250,7 @@ export const createBeds = async (req, res) => {
     // Now fetch and populate
     const populatedBeds = await Bed.find({
       _id: { $in: createdBeds.map((b) => b._id) },
+      hospital,
     }).populate("ward", "name type floor");
 
     res.status(201).json({
@@ -260,6 +270,7 @@ export const createBeds = async (req, res) => {
 
 export const getBedsByWardId = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const { wardId } = req.params;
 
     if (!wardId) {
@@ -268,9 +279,9 @@ export const getBedsByWardId = async (req, res) => {
         message: "Ward ID is required.",
       });
     }
-    const ward = await Ward.findById(wardId);
+    const ward = await Ward.findOne({ _id: wardId, hospital });
 
-    const beds = await Bed.find({ ward: wardId })
+    const beds = await Bed.find({ hospital, ward: wardId })
       .sort({ bedNumber: 1 })
       .populate({
         path: "ward",
@@ -297,10 +308,10 @@ export const getBedsByWardId = async (req, res) => {
 };
 export const deleteWard = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const wardId = req.params.id;
-    const adminId = req.authority._id;
 
-    const ward = await Ward.findOne({ _id: wardId, admin: adminId });
+    const ward = await Ward.findOne({ _id: wardId, hospital });
     if (!ward) {
       return res.status(404).json({
         success: false,
@@ -309,10 +320,10 @@ export const deleteWard = async (req, res) => {
     }
 
     // Delete all beds under the ward
-    await Bed.deleteMany({ ward: wardId });
+    await Bed.deleteMany({ ward: wardId, hospital });
 
     // Delete the ward itself
-    await Ward.findByIdAndDelete(wardId);
+    await Ward.findOneAndDelete({ _id: wardId, hospital });
 
     return res.status(200).json({
       success: true,
@@ -329,6 +340,7 @@ export const deleteWard = async (req, res) => {
 };
 export const deleteLastBed = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const { wardId } = req.params;
 
     if (!wardId) {
@@ -339,7 +351,7 @@ export const deleteLastBed = async (req, res) => {
 
     // Use aggregation to cast bedNumber to number and sort numerically
     const [lastBed] = await Bed.aggregate([
-      { $match: { ward: new mongoose.Types.ObjectId(wardId) } },
+      { $match: { ward: new mongoose.Types.ObjectId(wardId), hospital } },
       {
         $addFields: {
           bedNumberNumeric: { $toInt: "$bedNumber" },
@@ -355,7 +367,7 @@ export const deleteLastBed = async (req, res) => {
         .json({ success: false, message: "No beds found in this ward." });
     }
 
-    const deleted = await Bed.findByIdAndDelete(lastBed._id);
+    const deleted = await Bed.findOneAndDelete({ _id: lastBed._id, hospital });
 
     res.status(200).json({
       success: true,
@@ -374,13 +386,16 @@ export const deleteLastBed = async (req, res) => {
 
 export const getAvailableWardsAndBeds = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const { isEdit, ipdId } = req.query;
 
-    const wards = await Ward.find({ isActive: true }).sort({ name: 1 });
+    const wards = await Ward.find({ isActive: true, hospital }).sort({
+      name: 1,
+    });
 
     let patientBed = null;
     if (isEdit && ipdId) {
-      const ipd = await Ipd.findById(ipdId)
+      const ipd = await Ipd.findOne({ _id: ipdId, hospital })
         .select("bed")
         .populate("bed", "bedNumber charge ward");
       patientBed = ipd?.bed || null;
@@ -389,6 +404,7 @@ export const getAvailableWardsAndBeds = async (req, res) => {
     const result = await Promise.all(
       wards.map(async (ward) => {
         let beds = await Bed.find({
+          hospital,
           ward: ward._id,
           status: "Available",
         })
@@ -432,6 +448,7 @@ export const getAvailableWardsAndBeds = async (req, res) => {
 };
 export const changeBedStatus = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const { bedId, status } = req.body;
 
     if (!bedId || !status) {
@@ -446,8 +463,8 @@ export const changeBedStatus = async (req, res) => {
         .json({ success: false, message: "Invalid status" });
     }
 
-    const updatedBed = await Bed.findByIdAndUpdate(
-      bedId,
+    const updatedBed = await Bed.findOneAndUpdate(
+      { _id: bedId, hospital },
       { status },
       { new: true, runValidators: true }
     );

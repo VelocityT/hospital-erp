@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const wardSchema = new mongoose.Schema(
   {
+    hospital: { type: mongoose.Schema.Types.ObjectId, ref: "Hospital" },
     admin: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

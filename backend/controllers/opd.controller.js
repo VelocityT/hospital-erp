@@ -3,7 +3,8 @@ import { extractArray } from "../utils/helper.js";
 
 export const getAllOpdPatients = async (req, res) => {
   try {
-    const opdPatients = await Opd.find()
+    const { hospital } = req.authority;
+    const opdPatients = await Opd.find({ hospital })
       .select("opdNumber doctor visitDateTime patient")
       .sort({ visitDateTime: -1 })
       .populate({
@@ -43,6 +44,7 @@ export const getAllOpdPatients = async (req, res) => {
 
 export const updateOpdDetails = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const { opdId } = req.params;
     // console.log(req.body);
 
@@ -56,10 +58,14 @@ export const updateOpdDetails = async (req, res) => {
       },
     };
 
-    const updatedOpd = await Opd.findByIdAndUpdate(opdId, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedOpd = await Opd.findOneAndUpdate(
+      { _id: opdId, hospital },
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     if (!updatedOpd) {
       return res.status(404).json({

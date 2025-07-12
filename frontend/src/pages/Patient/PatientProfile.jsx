@@ -24,12 +24,12 @@ import toast from "react-hot-toast";
 import { getPatientFullDetailsApi } from "../../services/apis";
 import dayjs from "dayjs";
 import { handlePatientBillPrint } from "../../utils/printDataHelper";
-import {useSelector} from "react-redux"
+import { useSelector } from "react-redux";
 
 const { useBreakpoint } = Grid;
 
 const PatientProfile = () => {
-  const user = useSelector(state=>state?.user)
+  const user = useSelector((state) => state?.user);
   const { patientId } = useParams();
   const [data, setData] = useState(null);
   const [bills, setBills] = useState([]);
@@ -88,7 +88,9 @@ const PatientProfile = () => {
           justifyContent: "center",
         }}
       >
-        <Spin size="large" />
+        <div className="flex justify-center items-center min-h-[200px]">
+          <Spin size="large" />
+        </div>
       </div>
     );
   }
@@ -114,44 +116,48 @@ const PatientProfile = () => {
         <Col>
           <Button onClick={() => navigate(-1)}>Back</Button>
         </Col>
-        {["admin", "doctor","receptionist"].includes(user?.role) && (<><Col>
-          <Button
-            type="primary"
-            onClick={() => {
-              if (isPatientAdmitted) {
-                toast.error("Patient is already in IPD");
-                return;
-              }
-              navigate(`/ipd/add/${patientId}`, {
-                state: {
-                  fullName: data?.patient?.fullName,
-                  _id: data?.patient?._id,
-                },
-              });
-            }}
-          >
-            New IPD
-          </Button>
-        </Col>
-        <Col>
-          <Button
-            type="primary"
-            onClick={() => {
-              if (isPatientAdmitted) {
-                toast.error("Patient is already in IPD");
-                return;
-              }
-              navigate(`/opd/add/${patientId}`, {
-                state: {
-                  fullName: data?.patient?.fullName,
-                  _id: data?.patient?._id,
-                },
-              });
-            }}
-          >
-            New OPD
-          </Button>
-        </Col></>)}
+        {["admin", "doctor", "receptionist"].includes(user?.role) && (
+          <>
+            <Col>
+              <Button
+                type="primary"
+                onClick={() => {
+                  if (isPatientAdmitted) {
+                    toast.error("Patient is already in IPD");
+                    return;
+                  }
+                  navigate(`/ipd/add/${patientId}`, {
+                    state: {
+                      fullName: data?.patient?.fullName,
+                      _id: data?.patient?._id,
+                    },
+                  });
+                }}
+              >
+                New IPD
+              </Button>
+            </Col>
+            <Col>
+              <Button
+                type="primary"
+                onClick={() => {
+                  if (isPatientAdmitted) {
+                    toast.error("Patient is already in IPD");
+                    return;
+                  }
+                  navigate(`/opd/add/${patientId}`, {
+                    state: {
+                      fullName: data?.patient?.fullName,
+                      _id: data?.patient?._id,
+                    },
+                  });
+                }}
+              >
+                New OPD
+              </Button>
+            </Col>
+          </>
+        )}
       </Row>
 
       <Card style={{ marginBottom: 16 }}>
@@ -174,8 +180,8 @@ const PatientProfile = () => {
           <Col xs={24} sm={18} md={20} lg={21}>
             <Row gutter={[4, 4]}>
               <Col span={24}>
-                <Tag color="red">Inactive</Tag>
-                <span style={{ fontWeight: 600, fontSize: 20, marginLeft: 8 }}>
+                {/* <Tag color="red">Inactive</Tag> */}
+                <span style={{ fontWeight: 600, fontSize: 20 }}>
                   {patient.fullName}
                 </span>
               </Col>

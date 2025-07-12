@@ -4,9 +4,11 @@ import Opd from "../models/opd.js";
 import Patient from "../models/patient.js";
 import dayjs from "dayjs";
 import { extractArray } from "../utils/helper.js";
+import { generateCustomId } from "../utils/generateCustomId.js";
 
 export const createPatient = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     // console.log(req.body);
     // return res.status(201).json({
     //   success: true,
@@ -14,6 +16,7 @@ export const createPatient = async (req, res) => {
     //   // data: patient,
     // });
     const patientData = {
+      hospital,
       fullName: req.body.fullName,
       gender: req.body.gender,
       dob: req.body.dob,
@@ -42,10 +45,12 @@ export const createPatient = async (req, res) => {
       //   })) || [],
     };
     // console.log(req.body);
-    const patient = await Patient.create(patientData);
+    const patientId = await generateCustomId(hospital, "patient");
+    const patient = await Patient.create({ patientId, ...patientData });
 
     if (req.body.patientType === "OPD") {
       const OPDData = {
+        hospital,
         patient: patient?._id,
         opdNumber: req.body.OPD?.opdNumber || "N/A",
         // visitDateTime: req.body.OPD?.visitDateTime || null,
@@ -61,6 +66,7 @@ export const createPatient = async (req, res) => {
       await Opd.create(OPDData);
     } else if (req.body.patientType === "IPD") {
       const IPDData = {
+        hospital,
         patient: patient?._id,
         ipdNumber: req.body.IPD?.ipdNumber || "",
         // admissionDateTime: req.body.IPD?.admissionDateTime || null,
@@ -79,10 +85,13 @@ export const createPatient = async (req, res) => {
       };
       await Ipd.create(IPDData);
 
-      await Bed.findByIdAndUpdate(req.body.IPD?.bed, {
-        status: "Occupied",
-        patient: patient._id,
-      });
+      await Bed.findOneAndUpdate(
+        { _id: req.body.IPD?.bed, hospital },
+        {
+          status: "Occupied",
+          patient: patient._id,
+        }
+      );
     }
 
     return res.status(201).json({
@@ -102,7 +111,8 @@ export const createPatient = async (req, res) => {
 
 export const getAllPatients = async (req, res) => {
   try {
-    const patients = await Patient.find()
+    const { hospital } = req.authority;
+    const patients = await Patient.find({ hospital })
       .select(
         "fullName gender age registrationDate contact.phone bloodGroup patientId"
       )
@@ -130,6 +140,7 @@ export const getAllPatients = async (req, res) => {
 
 export const getPatientIpdOpdDetails = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const { id } = req.params;
     const { isIpdPatient, isOpdPatient, detailPage } = req.query;
     // console.log(detailPage)
@@ -147,7 +158,7 @@ export const getPatientIpdOpdDetails = async (req, res) => {
 
     if (isIpdPatient === "true") {
       // console.log("Fetching IPD details for patient ID:", id);
-      const ipd = await Ipd.findOne({ _id: id })
+      const ipd = await Ipd.findOne({ _id: id, hospital })
         .populate("attendingDoctor", "fullName ipdCharge")
         .populate(
           "patient",
@@ -196,7 +207,7 @@ export const getPatientIpdOpdDetails = async (req, res) => {
     }
 
     if (isOpdPatient === "true") {
-      const opd = await Opd.findOne({ _id: id })
+      const opd = await Opd.findOne({ _id: id, hospital })
         .populate("doctor", "fullName opdCharge")
         .populate(
           "patient",
@@ -249,9 +260,10 @@ export const getPatientIpdOpdDetails = async (req, res) => {
 
 export const getPatientDetails = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const id = req.params.id;
 
-    const patient = await Patient.findById(id);
+    const patient = await Patient.findOne({ _id: id, hospital });
     if (!patient) {
       return res.status(404).json({
         success: false,
@@ -264,7 +276,7 @@ export const getPatientDetails = async (req, res) => {
 
     // Attach OPD or IPD details if requested
     if (patient.patientType === "IPD") {
-      const ipdDoc = await Ipd.findOne({ patient: patient._id })
+      const ipdDoc = await Ipd.findOne({ patient: patient._id, hospital })
         .populate("attendingDoctor", "fullName ipdCharge")
         .select("-__v");
 
@@ -276,7 +288,7 @@ export const getPatientDetails = async (req, res) => {
         patientObj.ipdDetails = ipdDetails;
       }
     } else if (patient.patientType === "OPD") {
-      const opdDoc = await Opd.findOne({ patient: patient._id })
+      const opdDoc = await Opd.findOne({ patient: patient._id, hospital })
         .populate("doctor", "fullName phone opdCharge")
         .select("-__v");
 
@@ -306,6 +318,7 @@ export const getPatientDetails = async (req, res) => {
 
 export const updatePatientRegistration = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const id = req.params.id;
     // console.log(req.body);
     // Prepare patient update data
@@ -334,9 +347,13 @@ export const updatePatientRegistration = async (req, res) => {
     };
 
     // Update patient document
-    const updatedPatient = await Patient.findByIdAndUpdate(id, patientData, {
-      new: true,
-    });
+    const updatedPatient = await Patient.findOneAndUpdate(
+      { _id: id, hospital },
+      patientData,
+      {
+        new: true,
+      }
+    );
 
     if (!updatedPatient) {
       return res.status(404).json({
@@ -362,11 +379,13 @@ export const updatePatientRegistration = async (req, res) => {
 
 export const switchPatientToIpd = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const patientId = req.params.id;
     const { doctor, ...ipdInfo } = req.body;
     // console.log(req.body);
     const existingIpd = await Ipd.findOne({
       patient: patientId,
+      hospital,
       status: { $ne: "Discharged" },
     });
 
@@ -391,6 +410,7 @@ export const switchPatientToIpd = async (req, res) => {
       ...ipdInfo,
       attendingDoctor: doctor,
       patient: patientId,
+      hospital,
     };
 
     const newIpd = await Ipd.create(ipdData);
@@ -411,10 +431,11 @@ export const switchPatientToIpd = async (req, res) => {
 };
 export const getPatientFullDetails = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const { patientId } = req.params;
     // console.log("Fetching full details for patient:", patientId);
 
-    const patient = await Patient.findOne({ patientId }).lean();
+    const patient = await Patient.findOne({ patientId, hospital }).lean();
 
     if (!patient) {
       return res.status(404).json({
@@ -425,7 +446,7 @@ export const getPatientFullDetails = async (req, res) => {
 
     const patient_id = patient._id;
 
-    const ipds = await Ipd.find({ patient: patient_id })
+    const ipds = await Ipd.find({ patient: patient_id, hospital })
       .populate("bed", "bedNumber charge")
       .populate("ward", "name floor type")
       .populate("attendingDoctor", "fullName role ipdCharge")
@@ -434,7 +455,7 @@ export const getPatientFullDetails = async (req, res) => {
       .sort({ admissionDate: -1 })
       .lean();
 
-    const opds = await Opd.find({ patient: patient_id })
+    const opds = await Opd.find({ patient: patient_id, hospital })
       .populate("doctor", "fullName role opdCharge")
       .populate("payment.bill")
       .sort({ visitDateTime: -1 })
@@ -461,9 +482,13 @@ export const getPatientFullDetails = async (req, res) => {
 
 export const addOpdOrIpd = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const { type, ...payload } = req.body;
 
-    const checkPatient = await Patient.findById(payload?.patient);
+    const checkPatient = await Patient.findOne({
+      _id: payload?.patient,
+      hospital,
+    });
 
     if (!checkPatient) {
       return res.status(404).json({
@@ -473,10 +498,9 @@ export const addOpdOrIpd = async (req, res) => {
     }
 
     if (type === "ipd" && payload.ipdNumber) {
-      await Ipd.create(payload);
-      await Bed.updateOne();
+      await Ipd.create({ ...payload, hospital });
       await Bed.updateOne(
-        { _id: payload.bed },
+        { _id: payload.bed, hospital },
         {
           $set: {
             status: "Occupied",
@@ -485,7 +509,7 @@ export const addOpdOrIpd = async (req, res) => {
         }
       );
     } else if (type === "opd" && payload.opdNumber) {
-      await Opd.create(payload);
+      await Opd.create({ ...payload, hospital });
     } else {
       return res.status(403).json({
         success: false,
@@ -509,6 +533,7 @@ export const addOpdOrIpd = async (req, res) => {
 };
 export const searchPatient = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const q = req.query.q?.trim();
 
     if (!q || q.length < 4) {
@@ -521,6 +546,7 @@ export const searchPatient = async (req, res) => {
     const regex = new RegExp(q, "i");
 
     const patients = await Patient.find({
+      hospital,
       $or: [{ "contact.phone": regex }, { patientId: regex }],
     })
       .select("fullName patientId contact.phone")

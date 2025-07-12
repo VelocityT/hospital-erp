@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Table,
   Card,
@@ -8,66 +8,89 @@ import {
   Row,
   Col,
   Input,
-  Tag,
+  Spin,
 } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getUsersApi } from "../../services/apis";
-
-const columnsBase = [
-  {
-    title: "Name",
-    dataIndex: "fullName",
-    key: "fullName",
-    sorter: (a, b) => a.fullName.localeCompare(b.fullName),
-  },
-  {
-    title: "Gender",
-    dataIndex: "gender",
-    key: "gender",
-    filters: [
-      { text: "Male", value: "male" },
-      { text: "Female", value: "female" },
-      { text: "Other", value: "other" },
-    ],
-    onFilter: (value, record) => record.gender === value,
-  },
-  {
-    title: "Department",
-    dataIndex: "department",
-    key: "department",
-    render: (val) =>
-      val?.replace(/-/g, " ")?.replace(/\b\w/g, (c) => c.toUpperCase()) || "-",
-  },
-  {
-    title: "Designation",
-    dataIndex: "designation",
-    key: "designation",
-  },
-  {
-    title: "Specialist",
-    dataIndex: "specialist",
-    key: "specialist",
-  },
-  {
-    title: "Phone",
-    dataIndex: "phone",
-    key: "phone",
-  },
-];
+import toast from "react-hot-toast";
 
 const DoctorList = () => {
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [viewDrawer, setViewDrawer] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [searchText, setSearchText] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
+  const columnsBase = [
+    {
+      title: "Name",
+      dataIndex: "fullName",
+      key: "fullName",
+      sorter: (a, b) => a.fullName.localeCompare(b.fullName),
+      render: (text, record) => (
+        <p
+          onClick={() =>
+            navigate(`/staff/profile/${record?.staffId}`, {
+              state: { _id: record._id },
+            })
+          }
+          className="text-blue-600 cursor-pointer hover:underline mb-0"
+        >
+          {text}
+        </p>
+      ),
+    },
+    {
+      title: "Gender",
+      dataIndex: "gender",
+      key: "gender",
+      filters: [
+        { text: "Male", value: "male" },
+        { text: "Female", value: "female" },
+        { text: "Other", value: "other" },
+      ],
+      onFilter: (value, record) => record.gender === value,
+    },
+    {
+      title: "Department",
+      dataIndex: "department",
+      key: "department",
+      render: (val) =>
+        val?.replace(/-/g, " ")?.replace(/\b\w/g, (c) => c.toUpperCase()) ||
+        "-",
+    },
+    {
+      title: "Designation",
+      dataIndex: "designation",
+      key: "designation",
+    },
+    {
+      title: "Specialist",
+      dataIndex: "specialist",
+      key: "specialist",
+    },
+    {
+      title: "Phone",
+      dataIndex: "phone",
+      key: "phone",
+    },
+  ];
 
   useEffect(() => {
     const getDoctorsList = async () => {
-      const response = await getUsersApi({ userType: "doctor" });
-      // console.log(response)
-      setData(response?.data?.map((d, idx) => ({ ...d, key: idx })));
+      setLoading(true);
+      try {
+        const response = await getUsersApi({ userType: "doctor" });
+        const list =
+          response?.data?.map((d, idx) => ({ ...d, key: idx })) || [];
+        setData(list);
+      } catch (error) {
+        console.error("Failed to fetch doctors:", error);
+        toast.error(error?.message || "Error fetching doctors list");
+      } finally {
+        setLoading(false);
+      }
     };
     getDoctorsList();
   }, [location]);
@@ -141,13 +164,19 @@ const DoctorList = () => {
         }
         bordered={false}
       >
-        <Table
-          columns={columns}
-          dataSource={filteredData}
-          pagination={{ pageSize: 10 }}
-          scroll={{ x: 900 }}
-          responsive
-        />
+        {loading ? (
+          <div className="flex justify-center items-center min-h-[200px]">
+            <Spin size="large" />
+          </div>
+        ) : (
+          <Table
+            columns={columns}
+            dataSource={filteredData}
+            pagination={{ pageSize: 10 }}
+            scroll={{ x: 900 }}
+            responsive
+          />
+        )}
 
         <Drawer
           title="Doctor Details"

@@ -113,7 +113,7 @@ const PatientBilling = () => {
   ];
 
   return (
-    <div className="p-4 mx-auto space-y-6">
+    <div className="mx-auto space-y-6">
       {/* Search */}
       <Card title="Search Patient by Phone no. or ID" className="print:hidden">
         <Input
@@ -125,7 +125,7 @@ const PatientBilling = () => {
         />
         {loading ? (
           <div className="flex justify-center mt-6">
-            <Spin />
+            <Spin size="large" />
           </div>
         ) : patients.length ? (
           <div className="mt-4 border rounded">
@@ -151,7 +151,7 @@ const PatientBilling = () => {
       {/* Patient Info */}
       {fetchingDetails ? (
         <div className="flex justify-center">
-          <Spin />
+          <Spin size="large" />
         </div>
       ) : (
         patient && (

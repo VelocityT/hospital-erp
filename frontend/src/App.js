@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
-import { ConfigProvider, Layout, theme as antdTheme } from "antd";
-import { Provider, useSelector } from "react-redux";
+import { Button, ConfigProvider, Layout, theme as antdTheme } from "antd";
+import { Provider, useDispatch, useSelector } from "react-redux";
 
 import { store } from "./redux/store";
 import SidebarMenu from "./pages/components/SidebarMenu";
@@ -16,8 +17,11 @@ import Print from "./pages/printMaterial/Print";
 import LoginPage from "./pages/authRoute/LoginPage";
 import { roleRoutes } from "./routes/roleBaseRoutes";
 import ProtectedRoute from "./pages/components/ProtectedRoutes";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import NotFoundPage from "./pages/NotFoundPage";
+import { leaveImpersonationApi } from "./services/apis";
+import { setUser } from "./redux/userSlice";
+import { removeHospital } from "./redux/hospitalSlice";
 
 const { Content } = Layout;
 
@@ -25,6 +29,25 @@ function AppContent() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const user = useSelector((state) => state.user);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const leaveImpersonation = async () => {
+    try {
+      const res = await leaveImpersonationApi();
+      if (res.success) {
+        dispatch(setUser(res.user));
+        dispatch(removeHospital());
+        toast.success(res.message || "Exited impersonation");
+        navigate("/dashboard");
+      } else {
+        toast.error(res.message || "Failed to leave impersonation");
+      }
+    } catch (error) {
+      toast.error("Server error while leaving impersonation");
+      console.error("Leave impersonation error:", error);
+    }
+  };
 
   const isLoginPage = location.pathname === "/login";
   if (isLoginPage) return <LoginPage />;
@@ -47,6 +70,21 @@ function AppContent() {
           collapsed ? "ml-[80px]" : "ml-[200px]"
         } print:ml-0 print:w-full`}
       >
+        {user?.impersonatedBy && (
+          <div className="bg-yellow-100 border-b border-yellow-300 px-4 py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+            <span className="text-yellow-800 font-medium text-sm sm:text-base">
+              👤 Impersonating: <strong>{user.fullName}</strong>
+            </span>
+            <Button
+              danger
+              size="small"
+              className="self-end sm:self-auto"
+              onClick={() => leaveImpersonation()}
+            >
+              Leave
+            </Button>
+          </div>
+        )}
         <Navbar />
         <Content className="p-6 overflow-y-auto print:overflow-visible print:p-0">
           <Routes>

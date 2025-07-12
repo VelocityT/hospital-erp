@@ -86,7 +86,9 @@ const BedsList = () => {
 
   if (loading)
     return (
-      <Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} />
+       <div className="flex justify-center items-center min-h-[200px]">
+        <Spin size="large" />
+      </div>
     );
   if (error) return <Alert type="error" message={error} className="my-10" />;
 

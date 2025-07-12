@@ -21,26 +21,30 @@ dotenv.config();
 connectDB();
 
 const app = express();
-const swaggerDocs = JSON.parse(fs.readFileSync(new URL("./swagger_output.json", import.meta.url)));
+const swaggerDocs = JSON.parse(
+  fs.readFileSync(new URL("./swagger_output.json", import.meta.url))
+);
 app.use(express.json());
 app.use(bodyParser.json());
-app.use(cookieParser())
+app.use(cookieParser());
 
 const allowedOrigins = [
   "http://localhost:3000",
   // "https://hospital-erp-frontend-iota.vercel.app" // 🔁 Replace this with your actual Vercel domain
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // console.log("CORS origin:", origin);
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // console.log("CORS origin:", origin);
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
 
 app.get("/", (req, res) => {
   res.send(`
@@ -82,7 +86,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/ward", wardRoutes);
 app.use("/api/pharmacy", pharmacyRoutes);
 app.use("/api/pay", payRoutes);
-
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {

@@ -1,4 +1,5 @@
 export const ROLES = {
+  superAdmin: "superAdmin",
   admin: "admin",
   doctor: "doctor",
   nurse: "nurse",
@@ -6,7 +7,7 @@ export const ROLES = {
   pharmacist: "pharmacist",
 };
 
-export const secondOrderAccess = ["admin","doctor"]
+export const secondOrderAccess = ["admin", "doctor"];
 
 export const roleBasedAccess = (allowedRoles = []) => {
   return (req, res, next) => {

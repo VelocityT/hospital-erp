@@ -2,32 +2,28 @@ import Medicine from "../models/medicine.js";
 import { parseExcel } from "../utils/parseExcel.js";
 
 const fieldMap = {
-  "Name": "name",
-  "Category": "category",
-  "Unit": "unit",
-  "Manufacturer": "manufacturer",
+  Name: "name",
+  Category: "category",
+  Unit: "unit",
+  Manufacturer: "manufacturer",
   "Received Date": "recDate",
   "Batch No.": "batch",
   "Manufacture Date": "manufactureDate",
   "Expiry Date": "expiryDate",
-  "Supplier": "supplier",
+  Supplier: "supplier",
   "Invoice No.": "invoiceNo",
   "Invoice Date": "invoiceDate",
   "Cost Price": "costPrice",
   "Purchase Price": "purchasePrice",
   "Sell Price": "sellPrice",
-  "MRP": "mrp",
-  "Stock": "currentStock",
+  MRP: "mrp",
+  Stock: "currentStock",
 };
 
 export const createAndUpdateMedicine = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const { _id, ...details } = req.body;
-    // console.log(details)
-
-    // if (req.file) {
-    //   details.imageUrl = `/uploads/${req.file.filename}`;
-    // }
 
     details.costPrice = parseFloat(details.costPrice);
     details.purchasePrice = parseFloat(details.purchasePrice);
@@ -58,7 +54,7 @@ export const createAndUpdateMedicine = async (req, res) => {
     let result;
 
     if (_id) {
-      const existing = await Medicine.findById(_id);
+      const existing = await Medicine.findOne({ _id, hospital });
       if (!existing) {
         return res
           .status(404)
@@ -74,7 +70,7 @@ export const createAndUpdateMedicine = async (req, res) => {
         medicine: result,
       });
     } else {
-      result = await Medicine.create(details);
+      result = await Medicine.create({ ...details, hospital });
 
       return res.status(201).json({
         success: true,
@@ -90,7 +86,8 @@ export const createAndUpdateMedicine = async (req, res) => {
 
 export const getAllMedicines = async (req, res) => {
   try {
-    const medicines = await Medicine.find().sort({ createdAt: -1 });
+    const { hospital } = req.authority;
+    const medicines = await Medicine.find({ hospital }).sort({ createdAt: -1 });
     res.status(200).json({
       success: true,
       message: "Medicines retrieved successfully",
@@ -107,9 +104,10 @@ export const getAllMedicines = async (req, res) => {
 
 export const deleteMedicine = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const { id } = req.params;
 
-    const medicine = await Medicine.findById(id);
+    const medicine = await Medicine.findOne({ _id: id, hospital });
     if (!medicine) {
       return res.status(404).json({
         success: false,
@@ -140,6 +138,7 @@ export const deleteMedicine = async (req, res) => {
 
 export const uploadMedicineExcel = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -149,11 +148,15 @@ export const uploadMedicineExcel = async (req, res) => {
 
     // console.log("Received file:", req.file.originalname);
     const rows = parseExcel(req.file.buffer, fieldMap);
+    const medicineData = rows.map((row) => ({
+      ...row,
+      hospital,
+    }));
 
     if (
-      !rows ||
-      rows.length === 0 ||
-      rows.every((row) => Object.keys(row).length === 0)
+      !medicineData ||
+      medicineData.length === 0 ||
+      medicineData.every((row) => Object.keys(row).length === 0)
     ) {
       return res.status(400).json({
         success: false,
@@ -161,12 +164,12 @@ export const uploadMedicineExcel = async (req, res) => {
       });
     }
 
-    const savedMedicines = await Medicine.insertMany(rows);
+    const savedMedicines = await Medicine.insertMany(medicineData);
 
     return res.status(200).json({
       success: true,
       message: `${savedMedicines.length} medicines saved successfully`,
-      data:{savedMedicines}
+      data: { savedMedicines },
     });
   } catch (error) {
     console.error("Upload error:", error);

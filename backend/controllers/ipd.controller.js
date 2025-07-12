@@ -5,7 +5,8 @@ import dayjs from "dayjs";
 
 export const getAllIpdPatients = async (req, res) => {
   try {
-    const ipdPatients = await Ipd.find()
+    const { hospital } = req.authority;
+    const ipdPatients = await Ipd.find({ hospital })
       .select("ipdNumber attendingDoctor admissionDate patient status")
       .sort({ admissionDate: -1 })
       .populate({
@@ -46,10 +47,13 @@ export const getAllIpdPatients = async (req, res) => {
 
 export const updateIpdDetails = async (req, res) => {
   try {
+    const { hospital } = req.authority;
     const { ipdId } = req.params;
 
     // Fetch the IPD record
-    const existingIpd = await Ipd.findById(ipdId).populate("bed");
+    const existingIpd = await Ipd.findOne({ _id: ipdId, hospital }).populate(
+      "bed"
+    );
     if (!existingIpd) {
       return res.status(404).json({
         success: false,
@@ -64,17 +68,23 @@ export const updateIpdDetails = async (req, res) => {
     if (newBedId && newBedId !== oldBedId) {
       //  Free old bed
       if (oldBedId) {
-        await Bed.findByIdAndUpdate(oldBedId, {
-          status: "Available",
-          patient: null,
-        });
+        await Bed.findOneAndUpdate(
+          { _id: oldBedId, hospital },
+          {
+            status: "Available",
+            patient: null,
+          }
+        );
       }
 
       // Assign new bed
-      await Bed.findByIdAndUpdate(newBedId, {
-        status: "Occupied",
-        patient: existingIpd.patient,
-      });
+      await Bed.findOneAndUpdate(
+        { _id: newBedId, hospital },
+        {
+          status: "Occupied",
+          patient: existingIpd.patient,
+        }
+      );
     }
 
     // Prepare update data
@@ -94,7 +104,7 @@ export const updateIpdDetails = async (req, res) => {
     };
 
     //Update IPD document
-    const updatedIpd = await Ipd.findByIdAndUpdate(ipdId, updateData, {
+    const updatedIpd = await Ipd.findOneAndUpdate({_id:ipdId,hospital}, updateData, {
       new: true,
       runValidators: true,
     });
@@ -116,9 +126,10 @@ export const updateIpdDetails = async (req, res) => {
 
 export const dischargePatient = async (req, res) => {
   try {
+    const {hospital} = req.authority
     const { ipdId: _id, patientId: patient, ...summary } = req.body;
 
-    const ipd = await Ipd.findOne({ _id, patient })
+    const ipd = await Ipd.findOne({ _id, patient,hospital })
       .populate("attendingDoctor", "ipdCharge")
       .populate("bed", "charge")
       .populate("payment.bill");
@@ -166,8 +177,8 @@ export const dischargePatient = async (req, res) => {
     // Free the bed
     let updatedBed = null;
     if (ipd.bed?._id) {
-      updatedBed = await Bed.findByIdAndUpdate(
-        ipd.bed._id,
+      updatedBed = await Bed.findOneAndUpdate(
+        {_id:ipd.bed._id,hospital},
         { status: "Available", patient: null },
         { new: true }
       );

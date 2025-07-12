@@ -1,38 +1,43 @@
-import React from "react";
-import { hospitalInfo } from "../../utils/localStorage";
+import { useSelector } from "react-redux";
 
 const PrintHeader = () => {
+  const hospital = useSelector((state) => state.hospital);
   return (
     <div className="flex justify-between items-start border-b pb-4 mb-6">
-      {/* Left: Logo + Name */}
       <div className="flex gap-4 items-center">
-        <img
-          src={hospitalInfo.logo}
-          alt="Hospital Logo"
-          className="w-16 h-16 object-contain rounded"
-        />
+        {hospital?.logo && (
+          <img
+            src={hospital.logo}
+            alt="Hospital Logo"
+            className="w-16 h-16 object-contain rounded"
+          />
+        )}
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900 leading-tight">
-            {hospitalInfo.name}
+            {hospital.fullName}
           </h1>
-          <p className="text-sm text-gray-700">{hospitalInfo.tagline}</p>
+          <p className="text-sm text-gray-700">{hospital.tagline}</p>
         </div>
       </div>
 
       {/* Right: Details */}
       <div className="text-right text-sm text-gray-700 leading-tight">
-        <div>{hospitalInfo.address}</div>
-        <div><b>Phone:</b> {hospitalInfo.phone}</div>
-        <div><b>Email:</b> {hospitalInfo.email}</div>
+        <div>{hospital.address}</div>
+        <div>
+          <b>Phone:</b> {hospital.phone}
+        </div>
+        <div>
+          <b>Email:</b> {hospital.email}
+        </div>
         <div>
           <b>Website:</b>{" "}
           <a
-            href={hospitalInfo.website}
+            href={hospital.website}
             target="_blank"
             rel="noreferrer"
             className="text-blue-600 underline"
           >
-            {hospitalInfo.website}
+            {hospital.website}
           </a>
         </div>
       </div>

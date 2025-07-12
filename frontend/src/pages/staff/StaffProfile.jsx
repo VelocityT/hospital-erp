@@ -10,6 +10,7 @@ import {
   Spin,
   Descriptions,
   Button,
+  Table,
 } from "antd";
 import {
   UserOutlined,
@@ -18,7 +19,7 @@ import {
   EditOutlined,
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getStaffByIdApi } from "../../services/apis";
 import toast from "react-hot-toast";
 import dayjs from "dayjs";
@@ -33,6 +34,9 @@ const StaffProfile = () => {
   const screens = useBreakpoint();
   const [loading, setLoading] = useState(true);
   const [staffData, setStaffData] = useState(null);
+  const [doctorIpds, setDoctorIpds] = useState([]);
+  const [doctorOpds, setDoctorOpds] = useState([]);
+
   const { state } = useLocation();
   const _id = state?._id;
 
@@ -48,7 +52,11 @@ const StaffProfile = () => {
       const response = await getStaffByIdApi(id);
 
       if (response?.success) {
-        setStaffData(response.data);
+        setStaffData(response.data?.user);
+        if (response?.data?.user?.role === "doctor") {
+          setDoctorOpds(response.data?.doctorOpds);
+          setDoctorIpds(response.data?.doctorIpds);
+        }
       } else {
         toast.error(response?.message || "Failed to fetch staff details");
       }
@@ -60,7 +68,12 @@ const StaffProfile = () => {
     }
   };
 
-  if (loading) return <Spin fullscreen />;
+  if (loading)
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <Spin size="large" />
+      </div>
+    );
 
   const labelLayout = {
     column: screens.xs ? 1 : 2,
@@ -71,12 +84,16 @@ const StaffProfile = () => {
   return (
     <>
       <Row justify="end" align="center" style={{ marginBottom: 16 }}>
-        {user?.role === "admin" && (
+        {["admin", "superAdmin"].includes(user?.role) && (
           <Col>
             <Button
               type="primary"
               icon={<EditOutlined />}
-              onClick={() => navigate(`/staff/edit/${staffData?.staffId}`,{state:{staff:staffData}})}
+              onClick={() =>
+                navigate(`/staff/edit/${staffData?.staffId}`, {
+                  state: { staff: staffData },
+                })
+              }
             >
               Edit Profile
             </Button>
@@ -141,7 +158,6 @@ const StaffProfile = () => {
                 bordered
                 column={screens.xs ? 1 : 2}
               >
-
                 <Descriptions.Item label="Department">
                   {staffData?.department}
                 </Descriptions.Item>
@@ -221,7 +237,9 @@ const StaffProfile = () => {
                   {staffData?.reference}
                 </Descriptions.Item>
                 <Descriptions.Item label="Last Login">
-                  {dayjs(staffData?.lastLogin).format("DD/MM/YYYY HH:mm")}
+                  {staffData?.lastLogin
+                    ? dayjs(staffData.lastLogin).format("DD/MM/YYYY HH:mm")
+                    : "-"}
                 </Descriptions.Item>
               </Descriptions>
             </div>
@@ -230,11 +248,94 @@ const StaffProfile = () => {
           {staffData?.role === "doctor" && (
             <>
               <Tabs.TabPane tab="IPDs" key="2">
-                <Card size="small"> IPD records go here...</Card>
+                <Table
+                  size="small"
+                  dataSource={doctorIpds}
+                  rowKey="_id"
+                  pagination={false}
+                  columns={[
+                    {
+                      title: "IPD Number",
+                      dataIndex: "ipdNumber",
+                      key: "ipdNumber",
+                      render: (ipdNumber, record) => (
+                        <Link
+                          to={`/ipd/${ipdNumber}`}
+                          state={{ _id: record?._id }}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {ipdNumber}
+                        </Link>
+                      ),
+                    },
+                    {
+                      title: "Patient Name",
+                      dataIndex: ["patient", "fullName"],
+                      key: "patientName",
+                    },
+                    {
+                      title: "Bed Number",
+                      dataIndex: ["bed", "bedNumber"],
+                      key: "bedNumber",
+                    },
+                    {
+                      title: "Ward",
+                      render: (_, record) =>
+                        `${record.ward?.name || "-"} (Floor: ${
+                          record.ward?.floor || "-"
+                        })`,
+                      key: "ward",
+                    },
+                    {
+                      title: "Status",
+                      dataIndex: "status",
+                      key: "status",
+                      render: (status) => {
+                        return (
+                          <Tag color={status === "Admitted" ? "green" : "red"}>
+                            {status}
+                          </Tag>
+                        );
+                      },
+                    },
+                  ]}
+                />
               </Tabs.TabPane>
 
               <Tabs.TabPane tab="OPDs" key="3">
-                <Card size="small"> OPD records go here...</Card>
+                <Table
+                  size="small"
+                  dataSource={doctorOpds}
+                  rowKey="_id"
+                  pagination={false}
+                  columns={[
+                    {
+                      title: "OPD Number",
+                      dataIndex: "opdNumber",
+                      key: "opdNumber",
+                      render: (opdNumber, record) => (
+                        <Link
+                          to={`/opd/${opdNumber}`}
+                          state={{ _id: record?._id }}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {opdNumber}
+                        </Link>
+                      ),
+                    },
+                    {
+                      title: "Patient Name",
+                      dataIndex: ["patient", "fullName"],
+                      key: "patientName",
+                    },
+                    {
+                      title: "Visit Date",
+                      dataIndex: "visitDateTime",
+                      key: "visitDateTime",
+                      render: (text) => dayjs(text).format("DD/MM/YYYY HH:mm"),
+                    },
+                  ]}
+                />
               </Tabs.TabPane>
             </>
           )}

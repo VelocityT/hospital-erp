@@ -123,8 +123,6 @@ function PatientList() {
   }, [filterMode, selectedDate, allPatients]);
 
   const filterPatientsLocally = () => {
-    setLoading(true);
-
     const filtered =
       filterMode === "all"
         ? allPatients
@@ -133,7 +131,6 @@ function PatientList() {
           );
 
     setData(filtered);
-    setLoading(false);
   };
 
   const handleView = async (record) => {
@@ -157,7 +154,9 @@ function PatientList() {
       !searchText ||
       (p.fullName &&
         p.fullName.toLowerCase().includes(searchText.toLowerCase())) ||
-      (p.contact?.phone && p.contact.phone.includes(searchText))
+      (p.contact?.phone && p.contact.phone.includes(searchText)) ||
+      (p.patientId &&
+        p.patientId.toLowerCase().includes(searchText.toLowerCase()))
   );
 
   const columns = [
@@ -203,7 +202,7 @@ function PatientList() {
                 { label: "Date", value: "date" },
                 { label: "All", value: "all" },
               ]}
-               className="min-w-[70px]"
+              className="min-w-[70px]"
             />
           </Col>
           <Col>

@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const bedSchema = new mongoose.Schema(
   {
+    hospital: { type: mongoose.Schema.Types.ObjectId, ref: "Hospital" },
     bedNumber: {
       type: String,
       required: true,

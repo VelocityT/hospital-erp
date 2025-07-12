@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Card,
   Row,
@@ -25,7 +25,7 @@ const Prescription = () => {
   const location = useLocation();
   const patientRecord = location.state;
   // console.log(patientRecord);
-
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [selectedCategory, setSelectedCategory] = React.useState();
   const [medicinesList, setMedicinesList] = React.useState([]);
@@ -357,6 +357,7 @@ const Prescription = () => {
             <Button
               type="primary"
               onClick={() => {
+                navigate(-1)
                 // Save logic here
                 // You can collect all data and send to API
                 // Example:

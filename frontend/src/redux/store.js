@@ -1,6 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import userReducer from "./userSlice";
-import themeReducer from "./themeSlice";
+import hospitalReducer from "./hospitalSlice";
 
 const EXPIRY_DURATION = 24 * 60 * 60 * 1000;
 
@@ -40,7 +40,7 @@ const saveState = (state) => {
 export const store = configureStore({
   reducer: {
     user: userReducer,
-    theme:themeReducer
+    hospital: hospitalReducer,
   },
   preloadedState: loadState(),
 });
@@ -48,5 +48,6 @@ export const store = configureStore({
 store.subscribe(() => {
   saveState({
     user: store.getState().user,
+    hospital: store.getState().hospital,
   });
 });

@@ -5,6 +5,7 @@ import Bill from "../models/bill.js";
 
 export const payPatientIpdBill = async (req, res) => {
   try {
+    const {hospital} = req.authority
     const payload = req.body;
     // console.log(payload);
     // const payingAmount = payload?.payingAmount;
@@ -22,6 +23,7 @@ export const payPatientIpdBill = async (req, res) => {
 
     let getEntry;
     getEntry = await Ipd.findOne({
+      hospital,
       _id: payload?.entry?.entryId,
       ipdNumber: payload?.entry?.checkId,
     })
@@ -55,6 +57,7 @@ export const payPatientIpdBill = async (req, res) => {
       // console.log(totalAmountFromDb);
 
       const billData = {
+        hospital,
         patient: getEntry?.patient,
         entry: {
           type: "Ipd",
@@ -71,7 +74,7 @@ export const payPatientIpdBill = async (req, res) => {
 
       const newBill = await Bill.create(billData);
 
-      await Ipd.findByIdAndUpdate(getEntry._id, {
+      await Ipd.findOneAndUpdate({_id:getEntry._id,hospital}, {
         $set: {
           "payment.status":
             doesFullPaymentDone === totalAmountFromDb && getEntry?.dischargeDate ? "Paid" : "Pending",
@@ -81,7 +84,7 @@ export const payPatientIpdBill = async (req, res) => {
         },
       });
 
-      const updatedIpd = await Ipd.findById(getEntry._id)
+      const updatedIpd = await Ipd.findOne({_id:getEntry._id,hospital})
         .populate("attendingDoctor", "ipdCharge fullName")
         .populate("bed", "charge")
         .populate("payment.bill");
@@ -111,6 +114,7 @@ export const payPatientIpdBill = async (req, res) => {
 
 export const payPatientOpdBill = async (req, res) => {
   try {
+    const {hospital} = req.authority
     const payload = req.body;
 
     const tax = payload?.tax || 0;
@@ -125,7 +129,7 @@ export const payPatientOpdBill = async (req, res) => {
     }
 
     let getEntry;
-    getEntry = await Opd.findOne({
+    getEntry = await Opd.findOne({hospital,
       _id: payload?.entry?.entryId,
       opdNumber: payload?.entry?.checkId,
     }).populate("doctor", "opdCharge");
@@ -133,6 +137,7 @@ export const payPatientOpdBill = async (req, res) => {
       const newTotalAmount = getEntry?.doctor?.opdCharge + tax - discount;
       // console.log(newTotalAmount)
       const billData = {
+        hospital,
         patient: getEntry?.patient,
         entry: {
           type: "Opd",
@@ -149,7 +154,7 @@ export const payPatientOpdBill = async (req, res) => {
 
       const newBill = await Bill.create(billData);
 
-      await Opd.findByIdAndUpdate(getEntry._id, {
+      await Opd.findOneAndUpdate({_id:getEntry._id,hospital}, {
         $set: {
           "payment.status":  "Paid",
         },
@@ -158,7 +163,7 @@ export const payPatientOpdBill = async (req, res) => {
         },
       });
 
-      const updatedOpd = await Opd.findById(getEntry._id)
+      const updatedOpd = await Opd.findOne({_id:getEntry._id,hospital})
         .populate("doctor", "fullName role opdCharge")
         .populate("payment.bill");
       return res.status(200).json({
